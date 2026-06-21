@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { gsap } from 'gsap'
 import StaggeredMenu from './StaggeredMenu'
@@ -22,6 +22,8 @@ const socialItems = [
   { label: 'LinkedIn', link: 'www.linkedin.com/in/muhammad-dawood-butt-413192282' },
 ]
 
+const LOGO_IMG = '/files/IMG-20250815-WA0006.jpg'
+
 export default function Navbar() {
   const { pathname } = useLocation()
   const pillRef = useRef(null)
@@ -30,6 +32,10 @@ export default function Navbar() {
   const linksRef = useRef(null)
   const scrolled = useRef(false)
   const logoSwapInProgress = useRef(false)
+
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const backdropRef = useRef(null)
+  const imgBoxRef = useRef(null)
 
   useEffect(() => {
     const setVh = () => {
@@ -152,6 +158,47 @@ export default function Navbar() {
     }
   }, [])
 
+  // ── Lightbox open/close animation + escape-to-close + scroll-lock ──
+  useEffect(() => {
+    if (!previewOpen) return
+
+    const backdrop = backdropRef.current
+    const box = imgBoxRef.current
+    if (backdrop && box) {
+      gsap.set(backdrop, { opacity: 0 })
+      gsap.set(box, { opacity: 0, scale: 0.85, y: 16 })
+      gsap.to(backdrop, { opacity: 1, duration: 0.3, ease: 'power2.out' })
+      gsap.to(box, { opacity: 1, scale: 1, y: 0, duration: 0.4, ease: 'back.out(1.6)', delay: 0.05 })
+    }
+
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') closePreview()
+    }
+    window.addEventListener('keydown', onKeyDown)
+
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [previewOpen])
+
+  const closePreview = () => {
+    const backdrop = backdropRef.current
+    const box = imgBoxRef.current
+    if (backdrop && box) {
+      gsap.to(box, { opacity: 0, scale: 0.9, y: 10, duration: 0.22, ease: 'power2.in' })
+      gsap.to(backdrop, {
+        opacity: 0, duration: 0.25, ease: 'power2.in',
+        onComplete: () => setPreviewOpen(false),
+      })
+    } else {
+      setPreviewOpen(false)
+    }
+  }
+
   const handleMenuOpen = () => {
     const scrollY = window.scrollY
     document.body.dataset.scrollY = String(scrollY)
@@ -244,6 +291,14 @@ export default function Navbar() {
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    padding: 0;
+    cursor: pointer;
+    transition: border-color 0.25s ease, transform 0.25s ease;
+  }
+
+  .nav-logo-short:hover {
+    border-color: rgba(0,212,255,0.8);
+    transform: translateY(-50%) scale(1.08);
   }
 
   .nav-logo-short-img {
@@ -344,6 +399,60 @@ export default function Navbar() {
     z-index: 50;
     pointer-events: none;
   }
+
+  /* ── Logo image lightbox preview ── */
+  #logo-preview-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(5,5,6,0.82);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  #logo-preview-box {
+    position: relative;
+    max-width: min(86vw, 480px);
+    max-height: 80vh;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 30px 80px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,212,255,0.08);
+  }
+
+  #logo-preview-box img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #0a0a0a;
+  }
+
+  #logo-preview-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(10,10,10,0.55);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+
+  #logo-preview-close:hover {
+    background: rgba(0,212,255,0.15);
+    border-color: rgba(0,212,255,0.6);
+  }
 `}</style>
 
       {/* ── Desktop only ── */}
@@ -351,9 +460,15 @@ export default function Navbar() {
         <div id="nav-pill" ref={pillRef}>
           <div id="navbar-logo-target">
             <span className="nav-logo-full" ref={logoFullRef}>DAWOOD BUTT</span>
-            <div className="nav-logo-short" ref={logoShortRef}>
-              <img src="/files/IMG-20250815-WA0006.jpg" alt="DB" className="nav-logo-short-img" />
-            </div>
+            <button
+              type="button"
+              className="nav-logo-short"
+              ref={logoShortRef}
+              onClick={() => setPreviewOpen(true)}
+              aria-label="Preview profile photo"
+            >
+              <img src={LOGO_IMG} alt="Dawood Butt" className="nav-logo-short-img" />
+            </button>
           </div>
 
           <ul className="nav-links-list" ref={linksRef}>
@@ -411,6 +526,26 @@ export default function Navbar() {
           onMenuClose={handleMenuClose}
         />
       </div>
+
+      {/* ── Logo preview lightbox ── */}
+      {previewOpen && (
+        <div
+          id="logo-preview-backdrop"
+          ref={backdropRef}
+          onClick={(e) => {
+            if (e.target === backdropRef.current) closePreview()
+          }}
+        >
+          <div id="logo-preview-box" ref={imgBoxRef}>
+            <button id="logo-preview-close" onClick={closePreview} aria-label="Close preview">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+            </button>
+            <img src={LOGO_IMG} alt="Dawood Butt" />
+          </div>
+        </div>
+      )}
     </>
   )
 }

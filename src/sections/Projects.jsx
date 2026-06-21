@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
 import { projects } from '../data/projects'
 import { getLenis } from '../lib/lenis'
+import { setSelectedProject } from '../store/projectSlice'
 
 gsap.registerPlugin(ScrollTrigger)
 ScrollTrigger.config({ ignoreMobileResize: true })
@@ -35,11 +37,6 @@ function ProjectCard({ project }) {
             </div>
           </div>
 
-          {/* Rounding now lives on the frame (overflow:hidden), not on the
-              <img> itself. clip-path on an image whose ancestor is being
-              scaled/translated every frame is what was causing the image
-              to flicker/distort on mobile — clip-path geometry doesn't get
-              cheaply GPU-composited the way a plain overflow:hidden box does. */}
           <div className="proj-img-frame">
             <img className="proj-img" src={project.img} alt={project.title} loading="lazy" />
           </div>
@@ -50,12 +47,15 @@ function ProjectCard({ project }) {
         {project.num}/{String(projects.length).padStart(2, '0')}
       </span>
 
+      {/* stopPropagation so clicking "Live" opens the external link
+          instead of also triggering the card's navigate-to-detail click */}
       <a
         href={project.live}
         target="_blank"
         rel="noopener noreferrer"
         className="proj-live-btn"
         style={{ color: '#000', borderColor: project.color, background: project.color }}
+        onClick={(e) => e.stopPropagation()}
       >
         Live
         <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
@@ -74,6 +74,13 @@ export default function Projects() {
   const tlRef = useRef(null)
   const [active, setActive] = useState(0)
   const total = projects.length
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+
+  const handleCardClick = useCallback((project) => {
+    dispatch(setSelectedProject(project))
+    navigate(`/project/${project.id}`)
+  }, [dispatch, navigate])
 
   const scrollToY = useCallback((y, opts) => {
     const lenis = getLenis()
@@ -110,9 +117,6 @@ export default function Projects() {
         const n = cards.length
         if (n === 0) return
 
-        // Card 0 is always shown already (it lives, statically, in the intro
-        // section above) — so inside the pinned section it simply starts
-        // visible too, giving a seamless hand-off instead of re-animating it.
         if (reduceMotion || n <= 1) {
           cards.forEach((card) => gsap.set(card, { yPercent: 0, scale: 1, opacity: 1 }))
           return
@@ -128,13 +132,6 @@ export default function Projects() {
           })
         })
 
-        // Glow: pre-render one layer per project (each with its own static
-        // color) and crossfade OPACITY between them instead of animating
-        // backgroundColor under a 140px blur. Animating color under a heavy
-        // blur filter forces the browser to re-rasterize the whole blurred
-        // area every scrub tick — that full repaint is what was causing the
-        // section-wide blink on mobile. Opacity crossfades are cheap
-        // composited operations with no repaint cost.
         glows.forEach((g, i) => gsap.set(g, { opacity: i === 0 ? 0.14 : 0 }))
 
         const tl = gsap.timeline({
@@ -155,10 +152,6 @@ export default function Projects() {
         })
         tlRef.current = tl
 
-        // Transitions only exist for card[1] onward — card[0] is already
-        // in place, so the first "slot" (position 0) is card1 sliding in
-        // over card0, then card2 over card1, and so on. No dead scroll
-        // distance at the start.
         for (let i = 1; i < n; i++) {
           const pos = i - 1
           tl.to(cards[i], { yPercent: 0, duration: 0.8, ease: 'none' }, pos)
@@ -181,7 +174,6 @@ export default function Projects() {
   return (
     <>
       <style>{`
-        /* ===== Card shell ===== */
         .proj-card-wrap {
           position: absolute;
           left: 4vw;
@@ -198,9 +190,9 @@ export default function Projects() {
             0 40px 90px -28px rgba(0,0,0,0.7),
             inset 0 1px 0 rgba(255,255,255,0.06);
           --pad: clamp(26px, 3.2vw, 48px);
+          cursor: pointer;
         }
 
-        /* ===== Distinctive card background: layered mesh + sheen + grain + vignette ===== */
         .proj-card-bg {
           position: absolute;
           inset: 0;
@@ -234,7 +226,6 @@ export default function Projects() {
           border-color: var(--accent-border-hover);
         }
 
-        /* ===== Content layout — centered as a group, no dead air ===== */
         .proj-content {
           position: relative;
           z-index: 2;
@@ -314,7 +305,6 @@ export default function Projects() {
           background: rgba(255,255,255,0.04);
         }
 
-        /* ===== Image — always shows the full image, no crop, no harsh fade ===== */
         .proj-img-frame {
           position: relative;
           display: flex;
@@ -328,7 +318,6 @@ export default function Projects() {
           will-change: transform;
         }
 
-        /* Desktop only */
         @media (min-width: 1024px) {
           .proj-img-frame {
             transform: translateX(130px) translateZ(0);
@@ -344,7 +333,6 @@ export default function Projects() {
           -webkit-backface-visibility: hidden;
         }
 
-        /* Desktop only */
         @media (min-width: 1024px) {
           .proj-img {
             width: 80%;
@@ -352,7 +340,6 @@ export default function Projects() {
           }
         }
 
-        /* ===== Corner-pinned elements — independent of content flow, so no growing gap ===== */
         .proj-num-badge {
           position: absolute;
           left: var(--pad);
@@ -394,7 +381,6 @@ export default function Projects() {
         .proj-live-btn svg { transition: transform 0.3s ease; }
         .proj-live-btn:hover svg { transform: translate(2px, -2px); }
 
-        /* ===== Progress rail ===== */
         .proj-dots { display: flex; flex-direction: column; gap: 14px; }
         .proj-dot {
           width: 6px; height: 6px; border-radius: 50%;
@@ -415,7 +401,6 @@ export default function Projects() {
           50% { transform: translateY(4px); }
         }
 
-        /* ===== Mobile ===== */
         @media (max-width: 768px) {
           .proj-dots-desktop { display: none !important; }
           .proj-dots-mobile { display: flex !important; }
@@ -423,9 +408,6 @@ export default function Projects() {
 
           .proj-card-wrap {
             left: 3vw; right: 3vw; border-radius: 20px; --pad: 20px;
-            /* Big blurred box-shadows get recomputed every scrub frame while
-               the card scales — expensive on mobile GPUs and a contributor
-               to the blink. Cut it down for mobile only. */
             box-shadow: 0 16px 40px -16px rgba(0,0,0,0.6);
           }
           .proj-content { padding-bottom: calc(var(--pad) + 46px); justify-content: flex-start; }
@@ -444,10 +426,6 @@ export default function Projects() {
           .proj-title { font-size: 2.3rem; margin-bottom: 10px; }
           .proj-desc { -webkit-line-clamp: 3; margin-bottom: 14px; }
 
-          /* mix-blend-mode recompositing every frame under a scaling
-             ancestor is a known mobile WebKit/Chrome glitch source — drop
-             the blend mode on mobile and keep the grain as a flat low
-             opacity layer instead. */
           .proj-card-bg::after {
             mix-blend-mode: normal;
             opacity: 0.05;
@@ -506,7 +484,6 @@ export default function Projects() {
         </div>
 
         <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '32px' }}>
-
           <Link
             to="/projects"
             style={{
@@ -527,9 +504,6 @@ export default function Projects() {
         ref={sectionRef}
         style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}
       >
-        {/* One glow layer per project, stacked and crossfaded via opacity.
-            Each has its own fixed color — nothing here animates color, so
-            there's no per-frame repaint of the blur filter. */}
         {projects.map((project, i) => (
           <div
             key={`glow-${project.id}`}
@@ -552,7 +526,6 @@ export default function Projects() {
           />
         ))}
 
-        {/* Desktop progress rail */}
         <div className="proj-dots-desktop" style={{ position: 'absolute', right: '2.2vw', top: '50%', transform: 'translateY(-50%)', zIndex: 100 }}>
           <div className="proj-dots">
             {projects.map((p, i) => (
@@ -561,7 +534,6 @@ export default function Projects() {
           </div>
         </div>
 
-        {/* Mobile progress rail */}
         <div className="proj-dots-mobile" style={{ position: 'absolute', left: 0, right: 0, bottom: '14px', justifyContent: 'center', gap: '8px', zIndex: 100 }}>
           {projects.map((p, i) => (
             <button
@@ -583,6 +555,7 @@ export default function Projects() {
             key={project.id}
             ref={el => (cardsRef.current[i] = el)}
             className="proj-card-wrap"
+            onClick={() => handleCardClick(project)}
             style={{
               top: CARD_TOP,
               height: CARD_HEIGHT,

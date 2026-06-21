@@ -6,6 +6,14 @@ import { Link } from 'react-router-dom'
 
 gsap.registerPlugin(ScrollTrigger)
 
+// Tracks whether the hero intro has already played once. Lives at module
+// scope (not component state) so it survives the Hero component unmounting
+// and remounting when the user navigates away and back to Home within the
+// same session — that's exactly when this was re-triggering and feeling
+// repetitive/irritating. A full page reload still resets it, which is the
+// expected "first visit" experience.
+let heroIntroPlayed = false
+
 const LinkedInIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
     <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
@@ -36,15 +44,43 @@ export default function Hero({ isReady }) {
   const dotRef = useRef(null)
 
   useEffect(() => {
-    gsap.set([nameRef.current, roleRef.current, tagRef.current, availRef.current], { opacity: 0 })
-    gsap.set(lineRef.current, { opacity: 0, scaleX: 0 })
-    gsap.set(dotRef.current, { opacity: 0, scale: 0 })
-    if (btnsRef.current?.children) gsap.set(btnsRef.current.children, { opacity: 0 })
-    if (socialRef.current) gsap.set(socialRef.current.querySelectorAll('.social-icon'), { opacity: 0 })
-  }, [])
+    if (!isReady) {
+      // Only worth hiding pre-emptively if we're about to actually run the
+      // animated intro. If it already played once this session, there's no
+      // "hide then reveal" step at all — skip straight to final state once
+      // isReady flips, see below.
+      if (!heroIntroPlayed) {
+        gsap.set([nameRef.current, roleRef.current, tagRef.current, availRef.current], { opacity: 0 })
+        gsap.set(lineRef.current, { opacity: 0, scaleX: 0 })
+        gsap.set(dotRef.current, { opacity: 0, scale: 0 })
+        if (btnsRef.current?.children) gsap.set(btnsRef.current.children, { opacity: 0 })
+        if (socialRef.current) gsap.set(socialRef.current.querySelectorAll('.social-icon'), { opacity: 0 })
+      }
+      return
+    }
 
-  useEffect(() => {
-    if (!isReady) return
+    if (heroIntroPlayed) {
+      // Already played once this session — snap straight to the final
+      // visible state, no animation, no delay.
+      gsap.set([nameRef.current, roleRef.current, tagRef.current, availRef.current], {
+        opacity: 1, y: 0, filter: 'blur(0px)',
+      })
+      gsap.set(lineRef.current, { opacity: 1, scaleX: 1, boxShadow: '0 0 0px rgba(0,212,255,0)' })
+      gsap.set(dotRef.current, { opacity: 1, scale: 1 })
+      if (tagRef.current) {
+        gsap.set(tagRef.current.querySelectorAll('.word'), { opacity: 1, y: 0, filter: 'blur(0px)' })
+      }
+      if (btnsRef.current?.children) {
+        gsap.set(btnsRef.current.children, { opacity: 1, y: 0, scale: 1 })
+      }
+      if (socialRef.current) {
+        gsap.set(socialRef.current.querySelectorAll('.social-icon'), { opacity: 1, y: 0 })
+      }
+      return
+    }
+
+    heroIntroPlayed = true
+
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ delay: 0.2 })
 
@@ -104,8 +140,6 @@ export default function Hero({ isReady }) {
           50%      { opacity:.7; transform:scale(.75); box-shadow:0 0 0 5px rgba(74,222,128,0);   }
         }
         .avail-dot { animation: pulse-dot 2.8s ease-in-out infinite; }
-
-        /* line uses inline style */
 
         /* Primary btn — shine sweep */
         .btn-primary {
@@ -296,16 +330,11 @@ export default function Hero({ isReady }) {
               className="group relative inline-flex items-center justify-center gap-3 no-underline cursor-pointer active:scale-[0.97] transition-transform duration-150"
               style={{ width: 'clamp(160px,18vw,210px)', height: '50px' }}
             >
-              {/* outer border */}
               <span className="absolute inset-0 border border-white/20 group-hover:border-cyan-400/50 transition-colors duration-300 pointer-events-none" />
-              {/* top-left corner tick */}
               <span className="absolute top-0 left-0 w-[10px] h-[10px] border-t-2 border-l-2 border-cyan-400 pointer-events-none" />
-              {/* bottom-right corner tick */}
               <span className="absolute bottom-0 right-0 w-[10px] h-[10px] border-b-2 border-r-2 border-cyan-400 pointer-events-none" />
-              {/* fill */}
               <span className="absolute inset-0 bg-cyan-400/0 group-hover:bg-cyan-400/[0.04] transition-colors duration-300 pointer-events-none" />
 
-              {/* text */}
               <span className="relative z-10 flex items-center gap-2 text-white/80 group-hover:text-white transition-colors duration-200 font-mono text-[10px] tracking-[0.22em] uppercase">
                 <FolderOpen size={13} className="opacity-60 group-hover:opacity-100 transition-opacity duration-200" />
                 View My Work
@@ -320,15 +349,10 @@ export default function Hero({ isReady }) {
               className="group relative inline-flex items-center justify-center gap-3 no-underline cursor-pointer active:scale-[0.97] transition-transform duration-150"
               style={{ width: 'clamp(160px,18vw,210px)', height: '50px' }}
             >
-              {/* outer border */}
               <span className="absolute inset-0 border border-white/10 group-hover:border-cyan-400/30 transition-colors duration-300 pointer-events-none" />
-              {/* top-right corner tick — bold cyan like primary */}
               <span className="absolute top-0 right-0 w-[10px] h-[10px] border-t-2 border-r-2 border-cyan-400 pointer-events-none" />
-              {/* bottom-left corner tick — bold cyan like primary */}
               <span className="absolute bottom-0 left-0 w-[10px] h-[10px] border-b-2 border-l-2 border-cyan-400 pointer-events-none" />
-              {/* fill */}
               <span className="absolute inset-0 bg-cyan-400/0 group-hover:bg-cyan-400/[0.04] transition-colors duration-300 pointer-events-none" />
-              {/* text */}
               <span className="relative z-10 flex items-center gap-2 text-white/80 group-hover:text-white transition-colors duration-200 font-mono text-[10px] tracking-[0.22em] uppercase">
                 <User size={13} className="opacity-60 group-hover:opacity-100 transition-opacity duration-200" />
                 Get To Know Me
@@ -353,12 +377,10 @@ export default function Hero({ isReady }) {
                 className="social-icon group relative flex items-center justify-center w-[44px] h-[44px] no-underline cursor-pointer active:scale-95 transition-transform duration-150"
                 style={{ background: 'rgba(0,212,255,0.04)' }}
               >
-                {/* diamond shape border */}
                 <span
                   className="absolute inset-0 border border-cyan-400/20 group-hover:border-cyan-400/60 transition-colors duration-300 pointer-events-none"
                   style={{ transform: 'rotate(45deg)', borderRadius: '3px' }}
                 />
-                {/* icon */}
                 <span className="relative z-10 text-white/40 group-hover:text-cyan-400 transition-colors duration-200">
                   {icon}
                 </span>

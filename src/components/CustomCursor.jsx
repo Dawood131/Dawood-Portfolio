@@ -103,6 +103,7 @@ function DesktopCursor() {
   const pos = useRef({ x: -100, y: -100 })
   const followerPos = useRef({ x: -100, y: -100 })
   const isHovering = useRef(false)
+  const currentTargetRef = useRef(null)
   const trailCount = 6
 
   useEffect(() => {
@@ -145,9 +146,9 @@ function DesktopCursor() {
 
     gsap.ticker.add(ticker)
 
-    const onEnter = (e) => {
+    const triggerEnter = (target) => {
       isHovering.current = true
-      const isMagnetic = e.currentTarget.dataset.magnetic !== undefined
+      const isMagnetic = target.dataset.magnetic !== undefined
       gsap.to(cursor, { scale: 0, opacity: 0, duration: 0.25, ease: 'power3.out' })
       gsap.to(follower, {
         scale: isMagnetic ? 1.5 : 1.7,
@@ -161,7 +162,7 @@ function DesktopCursor() {
       gsap.to(follower, { rotation: 360, duration: 4, ease: 'none', repeat: -1 })
     }
 
-    const onLeave = () => {
+    const triggerLeave = () => {
       isHovering.current = false
       gsap.killTweensOf(follower, 'rotation')
       gsap.to(cursor, { scale: 1, opacity: 1, duration: 0.3, ease: 'power3.out' })
@@ -176,6 +177,30 @@ function DesktopCursor() {
         ease: 'expo.out',
       })
     }
+    
+    const INTERACTIVE_SELECTOR = 'a, button, [data-cursor], [data-magnetic]'
+
+    const onPointerOver = (e) => {
+      const target = e.target.closest(INTERACTIVE_SELECTOR)
+      if (!target) return
+      if (currentTargetRef.current === target) return
+      currentTargetRef.current = target
+      triggerEnter(target)
+    }
+
+    const onPointerOut = (e) => {
+      const target = e.target.closest(INTERACTIVE_SELECTOR)
+      if (!target) return
+      const related = e.relatedTarget
+      if (related && target.contains(related)) return
+      if (currentTargetRef.current === target) {
+        currentTargetRef.current = null
+        triggerLeave()
+      }
+    }
+
+    document.addEventListener('mouseover', onPointerOver)
+    document.addEventListener('mouseout', onPointerOut)
 
     const onClick = () => {
       gsap.timeline()
@@ -185,23 +210,15 @@ function DesktopCursor() {
         .to(cursor, { scale: 3, opacity: 0, duration: 0.35, ease: 'power2.out' })
         .set(cursor, { scale: 1, opacity: 1 })
     }
-
-    const interactables = document.querySelectorAll('a, button, [data-cursor], [data-magnetic]')
-    interactables.forEach((el) => {
-      el.addEventListener('mouseenter', onEnter)
-      el.addEventListener('mouseleave', onLeave)
-    })
     window.addEventListener('click', onClick)
 
     return () => {
       document.body.style.cursor = ''
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('click', onClick)
+      document.removeEventListener('mouseover', onPointerOver)
+      document.removeEventListener('mouseout', onPointerOut)
       gsap.ticker.remove(ticker)
-      interactables.forEach((el) => {
-        el.removeEventListener('mouseenter', onEnter)
-        el.removeEventListener('mouseleave', onLeave)
-      })
     }
   }, [])
 
@@ -250,7 +267,7 @@ function DesktopCursor() {
 
 // ─── Main export ───────────────────────────────────────────────────────────
 export default function CustomCursor() {
-  const [mode, setMode] = useState('mouse') 
+  const [mode, setMode] = useState('mouse')
 
   useEffect(() => {
     const onPointer = (e) => {
