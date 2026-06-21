@@ -3,8 +3,10 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Link } from 'react-router-dom'
 import { projects } from '../data/projects'
+import { getLenis } from '../lib/lenis'
 
 gsap.registerPlugin(ScrollTrigger)
+ScrollTrigger.config({ ignoreMobileResize: true })
 
 const NAV_H = 80
 const CARD_TOP = NAV_H + 8
@@ -68,11 +70,20 @@ export default function Projects() {
   const [active, setActive] = useState(0)
   const total = projects.length
 
+  const scrollToY = useCallback((y, opts) => {
+    const lenis = getLenis()
+    if (lenis) {
+      lenis.scrollTo(y, { duration: 1.2, ...opts })
+    } else {
+      window.scrollTo({ top: y, behavior: 'smooth' })
+    }
+  }, [])
+
   const goTo = useCallback((i) => {
     const st = tlRef.current?.scrollTrigger
     if (i === 0) {
       if (st) {
-        window.scrollTo({ top: st.start, behavior: 'smooth' })
+        scrollToY(st.start)
       } else {
         introRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
@@ -81,8 +92,8 @@ export default function Projects() {
     if (!st || total <= 1) return
     const frac = (i - 1) / (total - 1)
     const y = st.start + frac * (st.end - st.start)
-    window.scrollTo({ top: y, behavior: 'smooth' })
-  }, [total])
+    scrollToY(y)
+  }, [total, scrollToY])
 
   useEffect(() => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -291,6 +302,7 @@ export default function Projects() {
           display: flex;
           justify-content: flex-start;
           align-items: center;
+          overflow: hidden;
           transform: none; /* default: no movement */
         }
 
@@ -387,22 +399,30 @@ export default function Projects() {
           .proj-scroll-hint { display: none; }
 
           .proj-card-wrap { left: 3vw; right: 3vw; border-radius: 20px; --pad: 20px; }
-          .proj-content { padding-bottom: calc(var(--pad) + 46px); }
+          .proj-content { padding-bottom: calc(var(--pad) + 46px); justify-content: flex-start; }
 
           .proj-top-row { flex-direction: column; gap: 18px; }
           .proj-text-col { max-width: 100%; order: 2; }
-          .proj-img-frame { width: 100%; height: 210px; order: 1; }
+          .proj-img-frame {
+            order: 1;
+            justify-content: center;
+            height: 210px;
+            margin: calc(-1 * var(--pad)) calc(-1 * var(--pad)) 0;
+            width: calc(100% + var(--pad) * 2);
+          }
+          .proj-img { width: 100%; height: 100%; }
 
           .proj-title { font-size: 2.3rem; margin-bottom: 10px; }
           .proj-desc { -webkit-line-clamp: 3; margin-bottom: 14px; }
         }
       `}</style>
+
       <section
         ref={introRef}
         style={{
           position: 'relative',
           overflow: 'hidden',
-          padding: `${CARD_TOP}px 6vw 10px`,
+          padding: `${CARD_TOP}px 6vw 64px`,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'flex-end',

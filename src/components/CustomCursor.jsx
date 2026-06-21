@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 
 function MobileTrail() {
@@ -250,10 +250,21 @@ function DesktopCursor() {
 
 // ─── Main export ───────────────────────────────────────────────────────────
 export default function CustomCursor() {
-  const isTouchDevice =
-    typeof window !== 'undefined' &&
-    ('ontouchstart' in window || navigator.maxTouchPoints > 0)
+  const [mode, setMode] = useState('mouse') 
 
-  if (isTouchDevice) return <MobileTrail />
-  return <DesktopCursor />
+  useEffect(() => {
+    const onPointer = (e) => {
+      setMode(e.pointerType === 'touch' ? 'touch' : 'mouse')
+    }
+
+    window.addEventListener('pointerdown', onPointer)
+    window.addEventListener('pointermove', onPointer)
+
+    return () => {
+      window.removeEventListener('pointerdown', onPointer)
+      window.removeEventListener('pointermove', onPointer)
+    }
+  }, [])
+
+  return mode === 'touch' ? <MobileTrail /> : <DesktopCursor />
 }

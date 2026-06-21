@@ -451,3 +451,12 @@ html.preloader-active #root {
   position: fixed !important;
   width: 100% !important;
 }
+
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}

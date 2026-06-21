@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Preloader from './components/Preloader'
 import CustomCursor from './components/CustomCursor'
+import CustomScrollbar from './components/CustomScrollbar'
 import Home from './pages/Home'
 import About from './pages/About'
 import Projects from './pages/Projects'
@@ -23,6 +24,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <CustomCursor />
+      <CustomScrollbar />
       <ParticlesBg />
       {loading && <Preloader onComplete={() => setLoading(false)} />}
       <Navbar />
