@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Link } from 'react-router-dom'
@@ -9,22 +9,101 @@ gsap.registerPlugin(ScrollTrigger)
 const NAV_H = 80
 const CARD_TOP = NAV_H + 8
 const CARD_HEIGHT = `calc(100vh - ${CARD_TOP + 8}px)`
+const CARD_BG = '#0a0c0e'
+
+function ProjectCard({ project }) {
+  return (
+    <>
+      <div className="proj-card-bg" />
+      <div className="proj-card-vignette" />
+
+      <div className="proj-content">
+        <div className="proj-top-row">
+          <div className="proj-text-col">
+            <span className="proj-eyebrow">
+              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: project.color, display: 'inline-block' }} />
+              {project.subtitle}
+            </span>
+            <h3 className="proj-title">{project.title}</h3>
+            <p className="proj-desc">{project.description}</p>
+            <div className="proj-tech-list">
+              {project.tech.map((t, j) => (
+                <span key={j} className="proj-tech-tag">{t}</span>
+              ))}
+            </div>
+          </div>
+
+          <div className="proj-img-frame">
+            <img className="proj-img" src={project.img} alt={project.title} loading="lazy" />
+          </div>
+        </div>
+      </div>
+
+      <span className="proj-num-badge">
+        {project.num}/{String(projects.length).padStart(2, '0')}
+      </span>
+
+      <a
+        href={project.live}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="proj-live-btn"
+        style={{ color: '#000', borderColor: project.color, background: project.color }}
+      >
+        Live
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+          <path d="M2 9L9 2M9 2H3.5M9 2V7.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </a>
+    </>
+  )
+}
 
 export default function Projects() {
+  const introRef = useRef(null)
   const sectionRef = useRef(null)
-  const headerRef = useRef(null)
   const cardsRef = useRef([])
+  const glowRef = useRef(null)
+  const tlRef = useRef(null)
+  const [active, setActive] = useState(0)
+  const total = projects.length
+
+  const goTo = useCallback((i) => {
+    const st = tlRef.current?.scrollTrigger
+    if (i === 0) {
+      if (st) {
+        window.scrollTo({ top: st.start, behavior: 'smooth' })
+      } else {
+        introRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+      return
+    }
+    if (!st || total <= 1) return
+    const frac = (i - 1) / (total - 1)
+    const y = st.start + frac * (st.end - st.start)
+    window.scrollTo({ top: y, behavior: 'smooth' })
+  }, [total])
 
   useEffect(() => {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
     const timer = setTimeout(() => {
       const ctx = gsap.context(() => {
         const cards = cardsRef.current.filter(Boolean)
-        const total = cards.length
+        const n = cards.length
+        if (n === 0) return
 
-        gsap.set(headerRef.current, { yPercent: 0, opacity: 1 })
+        // Card 0 is always shown already (it lives, statically, in the intro
+        // section above) — so inside the pinned section it simply starts
+        // visible too, giving a seamless hand-off instead of re-animating it.
+        if (reduceMotion || n <= 1) {
+          cards.forEach((card) => gsap.set(card, { yPercent: 0, scale: 1, opacity: 1 }))
+          return
+        }
+
         cards.forEach((card, i) => {
           gsap.set(card, {
-            yPercent: 105,
+            yPercent: i === 0 ? 0 : 105,
             scale: 1,
             zIndex: i + 1,
             transformOrigin: 'top center',
@@ -36,21 +115,32 @@ export default function Projects() {
           scrollTrigger: {
             trigger: sectionRef.current,
             start: 'top top',
-            end: `+=${window.innerHeight * (total + 1)}`,
+            end: `+=${window.innerHeight * n}`,
             pin: true,
+            pinType: 'transform',
             scrub: 1,
             anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              const idx = Math.min(n - 1, Math.round(self.progress * (n - 1)))
+              setActive((prev) => (prev === idx ? prev : idx))
+            },
           },
         })
+        tlRef.current = tl
 
-        tl.to(headerRef.current, { yPercent: -110, opacity: 0, duration: 0.8, ease: 'none' }, 0)
-        tl.to(cards[0], { yPercent: 0, duration: 0.8, ease: 'none' }, 0)
-
-        cards.forEach((card, i) => {
-          if (i === 0) return
-          tl.to(card, { yPercent: 0, duration: 0.8, ease: 'none' }, i)
-          tl.to(cards[i - 1], { scale: 0.88, yPercent: -8, duration: 0.8, ease: 'none' }, i)
-        })
+        // Transitions only exist for card[1] onward — card[0] is already
+        // in place, so the first "slot" (position 0) is card1 sliding in
+        // over card0, then card2 over card1, and so on. No dead scroll
+        // distance at the start.
+        for (let i = 1; i < n; i++) {
+          const pos = i - 1
+          tl.to(cards[i], { yPercent: 0, duration: 0.8, ease: 'none' }, pos)
+          tl.to(cards[i - 1], { scale: 0.88, yPercent: -8, duration: 0.8, ease: 'none' }, pos)
+          if (glowRef.current) {
+            tl.to(glowRef.current, { backgroundColor: projects[i].color, duration: 0.8, ease: 'none' }, pos)
+          }
+        }
 
         tl.to({}, { duration: 0.5 })
       }, sectionRef)
@@ -64,411 +154,383 @@ export default function Projects() {
   return (
     <>
       <style>{`
-        .proj-card-inner {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          grid-template-rows: 1fr;
-          height: 100%;
-          gap: 0;
-        }
-
-        @media (max-width: 768px) {
-          .proj-card-inner {
-            grid-template-columns: 1fr;
-            grid-template-rows: auto 1fr;
-          }
-          .proj-img-col {
-            height: 200px !important;
-          }
-          .proj-info-col {
-            padding: 24px 24px 28px !important;
-          }
-          .proj-title {
-            font-size: 2.8rem !important;
-          }
-          .proj-meta-row {
-            flex-direction: column !important;
-            gap: 16px !important;
-            align-items: flex-start !important;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .proj-card-inner {
-            grid-template-rows: 180px 1fr;
-          }
-          .proj-img-col {
-            height: 180px !important;
-          }
-          .proj-title {
-            font-size: 2.2rem !important;
-          }
-        }
-
-        .proj-img-col {
-          position: relative;
+        /* ===== Card shell ===== */
+        .proj-card-wrap {
+          position: absolute;
+          left: 4vw;
+          right: 4vw;
+          border-radius: 26px;
           overflow: hidden;
-          border-radius: 0;
+          will-change: transform;
+          backface-visibility: hidden;
+          isolation: isolate;
+          border: 1px solid rgba(255,255,255,0.09);
+          box-shadow:
+            0 40px 90px -28px rgba(0,0,0,0.7),
+            inset 0 1px 0 rgba(255,255,255,0.06);
+          --pad: clamp(26px, 3.2vw, 48px);
         }
 
-        .proj-img-col img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          object-position: top;
-          transition: transform 0.6s ease;
-          display: block;
-        }
-
-        .proj-card-wrap:hover .proj-img-col img {
-          transform: scale(1.04);
-        }
-
-        .proj-img-overlay {
+        /* ===== Distinctive card background: layered mesh + sheen + grain + vignette ===== */
+        .proj-card-bg {
           position: absolute;
           inset: 0;
-          background: linear-gradient(135deg, rgba(0,0,0,0.3) 0%, transparent 60%);
-          pointer-events: none;
+          z-index: 0;
+          background:
+            radial-gradient(36% 42% at 4% 0%, var(--accent-soft) 0%, transparent 72%),
+            radial-gradient(40% 46% at 100% 100%, var(--accent-soft-2) 0%, transparent 72%),
+            linear-gradient(155deg, rgba(255,255,255,0.04) 0%, transparent 30%);
         }
 
-        .proj-img-number {
+        .proj-card-bg::after {
+          content: '';
           position: absolute;
-          bottom: 20px;
-          left: 24px;
-          font-size: 72px;
-          font-weight: 900;
-          font-family: Inter, sans-serif;
-          letter-spacing: -0.05em;
-          line-height: 1;
-          opacity: 0.08;
-          color: #fff;
+          inset: 0;
+          opacity: 0.14;
+          mix-blend-mode: overlay;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        .proj-card-vignette {
+          position: absolute;
+          inset: 0;
+          z-index: 1;
           pointer-events: none;
-          user-select: none;
+          box-shadow:
+            inset 0 -90px 110px -60px rgba(0,0,0,0.55),
+            inset 0 80px 100px -70px rgba(0,0,0,0.35);
         }
 
-        .proj-info-col {
-          padding: 36px 40px;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
+        .proj-card-wrap:hover {
+          border-color: var(--accent-border-hover);
+        }
+
+        /* ===== Content layout — centered as a group, no dead air ===== */
+        .proj-content {
           position: relative;
-          overflow: hidden;
-        }
-
-        .proj-top {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 12px;
-        }
-
-        .proj-subtitle-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 9px;
-          letter-spacing: 0.25em;
-          text-transform: uppercase;
-          font-family: Inter, sans-serif;
-          padding: 5px 12px;
-          border-radius: 999px;
-          border: 1px solid;
-          font-weight: 500;
-        }
-
-        .proj-num {
-          font-size: 11px;
-          letter-spacing: 0.3em;
-          color: rgba(255,255,255,0.15);
-          font-family: Inter, sans-serif;
-        }
-
-        .proj-mid {
-          flex: 1;
+          z-index: 2;
+          height: 100%;
           display: flex;
           flex-direction: column;
           justify-content: center;
-          padding: 24px 0 20px;
+          padding: var(--pad);
+        }
+
+        .proj-top-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 30px;
+        }
+
+        .proj-text-col {
+          display: flex;
+          flex-direction: column;
+          max-width: 46%;
+          padding-top: clamp(4px, 1vw, 14px);
+        }
+
+        .proj-eyebrow {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-size: clamp(12px, 1.3vw, 15px);
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          font-family: Inter, sans-serif;
+          font-weight: 700;
+          margin-bottom: 22px;
+          color: var(--accent);
         }
 
         .proj-title {
-          font-size: clamp(3rem, 5vw, 5.5rem);
-          font-weight: 900;
+          font-size: clamp(3rem, 5.4vw, 5.4rem);
+          font-weight: 800;
           color: #fff;
-          letter-spacing: -0.04em;
-          line-height: 0.9;
+          letter-spacing: -0.035em;
+          line-height: 0.96;
           font-family: Inter, sans-serif;
-          margin-bottom: 16px;
+          margin-bottom: 20px;
         }
 
         .proj-desc {
           font-size: 13px;
-          color: rgba(255,255,255,0.4);
-          line-height: 1.75;
+          color: rgba(255,255,255,0.5);
+          line-height: 1.65;
           font-family: Inter, sans-serif;
-          max-width: 420px;
-        }
-
-        .proj-meta-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
-          gap: 20px;
+          font-weight: 400;
+          margin-bottom: 22px;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 3;
+          overflow: hidden;
         }
 
         .proj-tech-list {
           display: flex;
           flex-wrap: wrap;
-          gap: 6px;
+          gap: 7px;
         }
 
         .proj-tech-tag {
           font-size: 9px;
-          letter-spacing: 0.12em;
+          letter-spacing: 0.1em;
           text-transform: uppercase;
-          color: rgba(255,255,255,0.3);
-          border: 1px solid rgba(255,255,255,0.08);
-          padding: 4px 10px;
-          border-radius: 6px;
+          color: rgba(255,255,255,0.55);
+          border: 1px solid rgba(255,255,255,0.1);
+          padding: 5px 11px;
+          border-radius: 7px;
           font-family: Inter, sans-serif;
-          background: rgba(255,255,255,0.03);
+          font-weight: 500;
+          background: rgba(255,255,255,0.04);
+        }
+
+        /* ===== Image — always shows the full image, no crop, no harsh fade ===== */
+        .proj-img-frame {
+          position: relative;
+          display: flex;
+          justify-content: flex-start;
+          align-items: center;
+          transform: none; /* default: no movement */
+        }
+
+        /* Desktop only */
+        @media (min-width: 1024px) {
+          .proj-img-frame {
+            transform: translateX(130px);
+          }
+        }
+
+        .proj-img {
+          width: 100%;
+          height: auto;
+          object-fit: contain;
+          display: block;
+          clip-path: inset(0 round 8px);
+        }
+
+        /* Desktop only */
+        @media (min-width: 1024px) {
+          .proj-img {
+            width: 80%;
+            height: 80%;
+          }
+        }
+
+        /* ===== Corner-pinned elements — independent of content flow, so no growing gap ===== */
+        .proj-num-badge {
+          position: absolute;
+          left: var(--pad);
+          bottom: var(--pad);
+          font-size: 11px;
+          letter-spacing: 0.2em;
+          color: rgba(255,255,255,0.32);
+          font-family: Inter, sans-serif;
+          font-weight: 600;
+          z-index: 3;
         }
 
         .proj-live-btn {
+          position: absolute;
+          right: var(--pad);
+          bottom: var(--pad);
+          z-index: 3;
           display: inline-flex;
           align-items: center;
           gap: 8px;
           font-size: 11px;
-          letter-spacing: 0.15em;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
           text-decoration: none;
           font-family: Inter, sans-serif;
-          padding: 10px 20px;
+          font-weight: 700;
+          padding: 12px 20px 12px 22px;
           border-radius: 999px;
           border: 1px solid;
-          transition: background 0.3s, transform 0.2s;
+          transition: transform 0.25s, box-shadow 0.3s;
           white-space: nowrap;
-          flex-shrink: 0;
         }
 
         .proj-live-btn:hover {
-          transform: translateY(-1px);
+          transform: translateY(-2px);
+          box-shadow: 0 10px 24px -6px var(--accent-soft);
         }
 
-        .proj-divider {
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          left: 0;
-          width: 1px;
-          background: rgba(255,255,255,0.06);
+        .proj-live-btn svg { transition: transform 0.3s ease; }
+        .proj-live-btn:hover svg { transform: translate(2px, -2px); }
+
+        /* ===== Progress rail ===== */
+        .proj-dots { display: flex; flex-direction: column; gap: 14px; }
+        .proj-dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: rgba(255,255,255,0.18); border: none; padding: 0;
+          cursor: pointer; transition: background 0.3s, height 0.3s, border-radius 0.3s;
+        }
+        .proj-dot.is-active { background: #fff; height: 22px; border-radius: 3px; }
+        .proj-dots-mobile { display: none; }
+
+        .proj-scroll-hint {
+          display: flex; align-items: center; gap: 10px;
+          font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+          color: rgba(255,255,255,0.32); font-family: Inter, sans-serif;
         }
 
-        .proj-corner-accent {
-          position: absolute;
-          bottom: 0;
-          right: 0;
-          width: 120px;
-          height: 120px;
-          pointer-events: none;
-          opacity: 0.04;
-          border-top-left-radius: 100%;
+        @keyframes proj-bob {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(4px); }
+        }
+
+        /* ===== Mobile ===== */
+        @media (max-width: 768px) {
+          .proj-dots-desktop { display: none !important; }
+          .proj-dots-mobile { display: flex !important; }
+          .proj-scroll-hint { display: none; }
+
+          .proj-card-wrap { left: 3vw; right: 3vw; border-radius: 20px; --pad: 20px; }
+          .proj-content { padding-bottom: calc(var(--pad) + 46px); }
+
+          .proj-top-row { flex-direction: column; gap: 18px; }
+          .proj-text-col { max-width: 100%; order: 2; }
+          .proj-img-frame { width: 100%; height: 210px; order: 1; }
+
+          .proj-title { font-size: 2.3rem; margin-bottom: 10px; }
+          .proj-desc { -webkit-line-clamp: 3; margin-bottom: 14px; }
         }
       `}</style>
-
       <section
-        ref={sectionRef}
+        ref={introRef}
         style={{
           position: 'relative',
-          height: '100vh',
-          background: '#000',
           overflow: 'hidden',
+          padding: `${CARD_TOP}px 6vw 10px`,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          flexWrap: 'wrap',
+          gap: '24px',
         }}
       >
-        {/* Header */}
         <div
-          ref={headerRef}
+          aria-hidden="true"
           style={{
             position: 'absolute',
-            top: CARD_TOP,
-            left: 0,
-            right: 0,
-            padding: '24px 6vw 20px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-end',
-            zIndex: 100,
+            top: '-60%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '70vw',
+            height: '70vh',
+            borderRadius: '50%',
+            filter: 'blur(140px)',
+            opacity: 0.14,
+            pointerEvents: 'none',
+            zIndex: 0,
           }}
-        >
-          <div>
-            <p style={{
-              fontSize: '10px',
-              letterSpacing: '0.3em',
-              textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.3)',
-              marginBottom: '10px',
-              fontFamily: 'Inter, sans-serif',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-            }}>
-              <span style={{
-                width: '5px', height: '5px',
-                borderRadius: '50%',
-                background: '#00D4FF',
-                display: 'inline-block',
-              }} />
-              Selected Work
-            </p>
-            <h2 style={{
-              fontSize: 'clamp(2rem, 5vw, 4rem)',
-              fontWeight: 900,
-              color: 'white',
-              letterSpacing: '-0.03em',
-              lineHeight: 1,
-              fontFamily: 'Inter, sans-serif',
-            }}>
-              PROJECTS
-            </h2>
-          </div>
+        />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <p style={{
+            fontSize: '10px', letterSpacing: '0.3em', textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.3)', marginBottom: '10px',
+            fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', gap: '10px',
+          }}>
+            <span style={{
+              width: '5px', height: '5px', borderRadius: '50%', background: '#00D4FF',
+              display: 'inline-block', boxShadow: '0 0 8px 2px rgba(0,212,255,0.6)',
+            }} />
+            Selected Work
+          </p>
+          <h2 style={{
+            fontSize: 'clamp(2rem, 5vw, 4rem)', fontWeight: 800, color: 'white',
+            letterSpacing: '-0.035em', lineHeight: 1, fontFamily: 'Inter, sans-serif',
+          }}>
+            PROJECTS
+          </h2>
+        </div>
+
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '32px' }}>
 
           <Link
             to="/projects"
             style={{
-              fontSize: '11px',
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.4)',
-              textDecoration: 'none',
-              fontFamily: 'Inter, sans-serif',
-              borderBottom: '1px solid rgba(255,255,255,0.15)',
-              paddingBottom: '4px',
+              fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase',
+              color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontFamily: 'Inter, sans-serif',
+              borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: '4px',
               transition: 'color 0.3s, border-color 0.3s',
             }}
-            onMouseEnter={e => {
-              e.currentTarget.style.color = '#00D4FF'
-              e.currentTarget.style.borderColor = '#00D4FF'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.color = 'rgba(255,255,255,0.4)'
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'
-            }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#00D4FF'; e.currentTarget.style.borderColor = '#00D4FF' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)' }}
           >
             View All →
           </Link>
         </div>
+      </section>
 
-        {/* Cards */}
+      <section
+        ref={sectionRef}
+        style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}
+      >
+        <div
+          ref={glowRef}
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '-20%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '70vw',
+            height: '70vh',
+            borderRadius: '50%',
+            filter: 'blur(140px)',
+            opacity: 0.14,
+            pointerEvents: 'none',
+            zIndex: 0,
+            transition: 'opacity 0.3s',
+          }}
+        />
+
+        {/* Desktop progress rail */}
+        <div className="proj-dots-desktop" style={{ position: 'absolute', right: '2.2vw', top: '50%', transform: 'translateY(-50%)', zIndex: 100 }}>
+          <div className="proj-dots">
+            {projects.map((p, i) => (
+              <button key={p.id} className={`proj-dot ${i === active ? 'is-active' : ''}`} onClick={() => goTo(i)} aria-label={`Go to ${p.title}`} aria-current={i === active} />
+            ))}
+          </div>
+        </div>
+
+        {/* Mobile progress rail */}
+        <div className="proj-dots-mobile" style={{ position: 'absolute', left: 0, right: 0, bottom: '14px', justifyContent: 'center', gap: '8px', zIndex: 100 }}>
+          {projects.map((p, i) => (
+            <button
+              key={p.id}
+              onClick={() => goTo(i)}
+              aria-label={`Go to ${p.title}`}
+              aria-current={i === active}
+              style={{
+                width: i === active ? '20px' : '6px', height: '6px', borderRadius: '3px',
+                border: 'none', padding: 0, cursor: 'pointer',
+                background: i === active ? '#fff' : 'rgba(255,255,255,0.25)', transition: 'all 0.3s',
+              }}
+            />
+          ))}
+        </div>
+
         {projects.map((project, i) => (
           <div
             key={project.id}
             ref={el => (cardsRef.current[i] = el)}
             className="proj-card-wrap"
             style={{
-              position: 'absolute',
               top: CARD_TOP,
-              left: '4vw',
-              right: '4vw',
               height: CARD_HEIGHT,
-              background: project.bg,
-              border: '1px solid rgba(255,255,255,0.07)',
-              borderRadius: '20px',
-              overflow: 'hidden',
-              willChange: 'transform',
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
+              background: CARD_BG,
+              '--accent': project.color,
+              '--accent-soft': `${project.color}26`,
+              '--accent-soft-2': `${project.color}16`,
+              '--accent-border-hover': `${project.color}55`,
+              ...(i === 0 ? { transform: 'translateY(0%)' } : {}),
             }}
           >
-            <div className="proj-card-inner">
-
-              {/* LEFT — Image */}
-              <div className="proj-img-col">
-                <img
-                  src={project.img}
-                  alt={project.title}
-                  loading="lazy"
-                />
-                <div className="proj-img-overlay" />
-                <div className="proj-img-number">{project.num}</div>
-              </div>
-
-              {/* RIGHT — Info */}
-              <div className="proj-info-col">
-                <div className="proj-divider" />
-
-                {/* Corner bg accent */}
-                <div
-                  className="proj-corner-accent"
-                  style={{ background: project.color }}
-                />
-
-                {/* Top */}
-                <div className="proj-top">
-                  <span
-                    className="proj-subtitle-pill"
-                    style={{
-                      color: project.color,
-                      borderColor: `${project.color}33`,
-                      background: `${project.color}0d`,
-                    }}
-                  >
-                    <span style={{
-                      width: '4px', height: '4px',
-                      borderRadius: '50%',
-                      background: project.color,
-                      display: 'inline-block',
-                      flexShrink: 0,
-                    }} />
-                    {project.subtitle}
-                  </span>
-                  <span className="proj-num">
-                    {project.num} / {String(projects.length).padStart(2, '0')}
-                  </span>
-                </div>
-
-                {/* Mid — title + desc */}
-                <div className="proj-mid">
-                  <h3 className="proj-title">{project.title}</h3>
-                  <p className="proj-desc">{project.description}</p>
-                </div>
-
-                {/* Bottom — tech + live */}
-                <div className="proj-meta-row">
-                  <div className="proj-tech-list">
-                    {project.tech.map((t, j) => (
-                      <span key={j} className="proj-tech-tag">{t}</span>
-                    ))}
-                  </div>
-
-                  <a
-                    href={project.live}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="proj-live-btn"
-                    style={{
-                      color: project.color,
-                      borderColor: `${project.color}44`,
-                      background: `${project.color}0d`,
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.background = `${project.color}22`)}
-                    onMouseLeave={e => (e.currentTarget.style.background = `${project.color}0d`)}
-                  >
-                    Live ↗
-                  </a>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Bottom accent line */}
-            <div style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              width: '50%',
-              height: '2px',
-              background: `linear-gradient(to right, ${project.color}99, transparent)`,
-            }} />
+            <ProjectCard project={project} />
           </div>
         ))}
       </section>
