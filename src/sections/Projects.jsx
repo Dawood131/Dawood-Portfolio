@@ -35,6 +35,11 @@ function ProjectCard({ project }) {
             </div>
           </div>
 
+          {/* Rounding now lives on the frame (overflow:hidden), not on the
+              <img> itself. clip-path on an image whose ancestor is being
+              scaled/translated every frame is what was causing the image
+              to flicker/distort on mobile — clip-path geometry doesn't get
+              cheaply GPU-composited the way a plain overflow:hidden box does. */}
           <div className="proj-img-frame">
             <img className="proj-img" src={project.img} alt={project.title} loading="lazy" />
           </div>
@@ -65,7 +70,7 @@ export default function Projects() {
   const introRef = useRef(null)
   const sectionRef = useRef(null)
   const cardsRef = useRef([])
-  const glowRef = useRef(null)
+  const glowRefs = useRef([])
   const tlRef = useRef(null)
   const [active, setActive] = useState(0)
   const total = projects.length
@@ -101,6 +106,7 @@ export default function Projects() {
     const timer = setTimeout(() => {
       const ctx = gsap.context(() => {
         const cards = cardsRef.current.filter(Boolean)
+        const glows = glowRefs.current.filter(Boolean)
         const n = cards.length
         if (n === 0) return
 
@@ -121,6 +127,15 @@ export default function Projects() {
             force3D: true,
           })
         })
+
+        // Glow: pre-render one layer per project (each with its own static
+        // color) and crossfade OPACITY between them instead of animating
+        // backgroundColor under a 140px blur. Animating color under a heavy
+        // blur filter forces the browser to re-rasterize the whole blurred
+        // area every scrub tick — that full repaint is what was causing the
+        // section-wide blink on mobile. Opacity crossfades are cheap
+        // composited operations with no repaint cost.
+        glows.forEach((g, i) => gsap.set(g, { opacity: i === 0 ? 0.14 : 0 }))
 
         const tl = gsap.timeline({
           scrollTrigger: {
@@ -148,8 +163,9 @@ export default function Projects() {
           const pos = i - 1
           tl.to(cards[i], { yPercent: 0, duration: 0.8, ease: 'none' }, pos)
           tl.to(cards[i - 1], { scale: 0.88, yPercent: -8, duration: 0.8, ease: 'none' }, pos)
-          if (glowRef.current) {
-            tl.to(glowRef.current, { backgroundColor: projects[i].color, duration: 0.8, ease: 'none' }, pos)
+          if (glows[i - 1] && glows[i]) {
+            tl.to(glows[i - 1], { opacity: 0, duration: 0.8, ease: 'none' }, pos)
+            tl.to(glows[i], { opacity: 0.14, duration: 0.8, ease: 'none' }, pos)
           }
         }
 
@@ -174,6 +190,8 @@ export default function Projects() {
           overflow: hidden;
           will-change: transform;
           backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+          transform: translateZ(0);
           isolation: isolate;
           border: 1px solid rgba(255,255,255,0.09);
           box-shadow:
@@ -303,13 +321,17 @@ export default function Projects() {
           justify-content: flex-start;
           align-items: center;
           overflow: hidden;
-          transform: none; /* default: no movement */
+          border-radius: 8px;
+          transform: translateZ(0);
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+          will-change: transform;
         }
 
         /* Desktop only */
         @media (min-width: 1024px) {
           .proj-img-frame {
-            transform: translateX(130px);
+            transform: translateX(130px) translateZ(0);
           }
         }
 
@@ -318,7 +340,8 @@ export default function Projects() {
           height: auto;
           object-fit: contain;
           display: block;
-          clip-path: inset(0 round 8px);
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
         }
 
         /* Desktop only */
@@ -398,7 +421,13 @@ export default function Projects() {
           .proj-dots-mobile { display: flex !important; }
           .proj-scroll-hint { display: none; }
 
-          .proj-card-wrap { left: 3vw; right: 3vw; border-radius: 20px; --pad: 20px; }
+          .proj-card-wrap {
+            left: 3vw; right: 3vw; border-radius: 20px; --pad: 20px;
+            /* Big blurred box-shadows get recomputed every scrub frame while
+               the card scales — expensive on mobile GPUs and a contributor
+               to the blink. Cut it down for mobile only. */
+            box-shadow: 0 16px 40px -16px rgba(0,0,0,0.6);
+          }
           .proj-content { padding-bottom: calc(var(--pad) + 46px); justify-content: flex-start; }
 
           .proj-top-row { flex-direction: column; gap: 18px; }
@@ -414,6 +443,15 @@ export default function Projects() {
 
           .proj-title { font-size: 2.3rem; margin-bottom: 10px; }
           .proj-desc { -webkit-line-clamp: 3; margin-bottom: 14px; }
+
+          /* mix-blend-mode recompositing every frame under a scaling
+             ancestor is a known mobile WebKit/Chrome glitch source — drop
+             the blend mode on mobile and keep the grain as a flat low
+             opacity layer instead. */
+          .proj-card-bg::after {
+            mix-blend-mode: normal;
+            opacity: 0.05;
+          }
         }
       `}</style>
 
@@ -489,24 +527,30 @@ export default function Projects() {
         ref={sectionRef}
         style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}
       >
-        <div
-          ref={glowRef}
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: '-20%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '70vw',
-            height: '70vh',
-            borderRadius: '50%',
-            filter: 'blur(140px)',
-            opacity: 0.14,
-            pointerEvents: 'none',
-            zIndex: 0,
-            transition: 'opacity 0.3s',
-          }}
-        />
+        {/* One glow layer per project, stacked and crossfaded via opacity.
+            Each has its own fixed color — nothing here animates color, so
+            there's no per-frame repaint of the blur filter. */}
+        {projects.map((project, i) => (
+          <div
+            key={`glow-${project.id}`}
+            ref={el => (glowRefs.current[i] = el)}
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              top: '-20%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '70vw',
+              height: '70vh',
+              borderRadius: '50%',
+              filter: 'blur(140px)',
+              opacity: i === 0 ? 0.14 : 0,
+              pointerEvents: 'none',
+              zIndex: 0,
+              willChange: 'opacity',
+            }}
+          />
+        ))}
 
         {/* Desktop progress rail */}
         <div className="proj-dots-desktop" style={{ position: 'absolute', right: '2.2vw', top: '50%', transform: 'translateY(-50%)', zIndex: 100 }}>

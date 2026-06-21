@@ -243,12 +243,14 @@ export default function Navbar() {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 8px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #00D4FF;
-    font-family: Inter, sans-serif;
+    overflow: hidden;
+  }
+
+  .nav-logo-short-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 
   .nav-links-list {
@@ -349,7 +351,9 @@ export default function Navbar() {
         <div id="nav-pill" ref={pillRef}>
           <div id="navbar-logo-target">
             <span className="nav-logo-full" ref={logoFullRef}>DAWOOD BUTT</span>
-            <div className="nav-logo-short" ref={logoShortRef}>DB</div>
+            <div className="nav-logo-short" ref={logoShortRef}>
+              <img src="/files/IMG-20250815-WA0006.jpg" alt="DB" className="nav-logo-short-img" />
+            </div>
           </div>
 
           <ul className="nav-links-list" ref={linksRef}>
