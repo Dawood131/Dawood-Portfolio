@@ -9,9 +9,6 @@ export default function ProjectDetail() {
   const navigate = useNavigate()
   const selectedProject = useSelector((state) => state.project.selectedProject)
 
-  // Lenis keeps its own scroll position independent of the browser, so a
-  // route change alone doesn't reset it — without this, the new page mounts
-  // wherever the previous page's scroll happened to be.
   useEffect(() => {
     const lenis = getLenis()
     if (lenis) {
@@ -20,11 +17,6 @@ export default function ProjectDetail() {
       window.scrollTo(0, 0)
     }
   }, [id])
-
-  // Redux state resets on a hard refresh / direct link visit (selectedProject
-  // will be null then), so fall back to looking the project up by id from
-  // the static data file. This keeps the page working even without the
-  // click-through navigation flow.
   const project =
     selectedProject && String(selectedProject.id) === id
       ? selectedProject
@@ -64,12 +56,6 @@ export default function ProjectDetail() {
     >
       <button
         onClick={() => {
-          // history.state.idx is set by react-router internally. If it's
-          // greater than 0, there's a real previous entry in THIS session
-          // to go back to (Home, the /projects list page, wherever they
-          // came from). If it's 0 (or missing — direct link/hard refresh),
-          // there's nothing to go back to, so fall back to Home instead of
-          // navigate(-1) potentially leaving the app entirely.
           if (window.history.state && window.history.state.idx > 0) {
             navigate(-1)
           } else {

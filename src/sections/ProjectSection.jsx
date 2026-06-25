@@ -7,6 +7,8 @@ import { projects } from '../data/projects'
 import { getLenis } from '../lib/lenis'
 import { setSelectedProject } from '../store/projectSlice'
 
+//Asy scroll ko k ek card ek scroll pr scroll ho na k sb ek dfa hi scroll hojai jb ek ai to scroll stop ho pir again scroll pr next ho
+
 gsap.registerPlugin(ScrollTrigger)
 ScrollTrigger.config({ ignoreMobileResize: true })
 
