@@ -519,30 +519,30 @@ export default function SkillsDome({
       filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35));
     }
     .skill-item__image--reference { position: absolute; inset: 8px; pointer-events: none; opacity: 0; }
-    .skill-name-tag {
-      position: absolute;
-      bottom: 6px;
-      left: 0; right: 0;
-      text-align: center;
-      font-size: 8px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      font-family: Inter, sans-serif;
-      font-weight: 600;
-      color: rgba(255,255,255,0.55);
-      opacity: 0;
-      transition: opacity 280ms ease;
-      pointer-events: none;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      padding: 0 4px;
-    }
-    .skill-item__image:hover .skill-name-tag,
-    .skill-item__image:focus-visible .skill-name-tag {
-      opacity: 1;
-      color: var(--sk-accent);
-    }
+.skill-name-tag {
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: Inter, sans-serif;
+  font-weight: 600;
+  color: var(--sk-accent); /* ya rgba(255,255,255,0.55) */
+  opacity: 1; /* Always visible */
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 4px;
+}
+    // .skill-item__image:hover .skill-name-tag,
+    // .skill-item__image:focus-visible .skill-name-tag {
+    //   opacity: 1;
+    //   color: var(--sk-accent);
+    // }
 
     .skills-scrim {
       position: absolute; inset: 0; z-index: 10; pointer-events: none;

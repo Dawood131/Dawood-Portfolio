@@ -7,8 +7,6 @@ import { projects } from '../data/projects'
 import { getLenis } from '../lib/lenis'
 import { setSelectedProject } from '../store/projectSlice'
 
-//Asy scroll ko k ek card ek scroll pr scroll ho na k sb ek dfa hi scroll hojai jb ek ai to scroll stop ho pir again scroll pr next ho
-
 gsap.registerPlugin(ScrollTrigger)
 ScrollTrigger.config({ ignoreMobileResize: true })
 
@@ -136,6 +134,16 @@ export default function Projects() {
 
         glows.forEach((g, i) => gsap.set(g, { opacity: i === 0 ? 0.14 : 0 }))
 
+        // On mobile, touch-scroll momentum is much jerkier than a desktop
+        // wheel, and scrub:1 makes the pinned card's position lag ~1s
+        // behind the actual scroll then "catch up" — that catch-up is
+        // exactly the vibration/judder you see right as a card pins and
+        // the next one overlaps it. scrub:true removes the lag entirely
+        // (1:1 with scroll position, no smoothing), which eliminates it.
+        // anticipatePin's pre-emptive offset is also a source of a small
+        // jump at the pin boundary on touch, so it's disabled on mobile too.
+        const isMobile = window.matchMedia('(max-width: 768px)').matches
+
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: sectionRef.current,
@@ -143,8 +151,8 @@ export default function Projects() {
             end: `+=${window.innerHeight * n}`,
             pin: true,
             pinType: 'transform',
-            scrub: 1,
-            anticipatePin: 1,
+            scrub: isMobile ? true : 1,
+            anticipatePin: isMobile ? 0 : 1,
             invalidateOnRefresh: true,
             onUpdate: (self) => {
               const idx = Math.min(n - 1, Math.round(self.progress * (n - 1)))
@@ -520,6 +528,7 @@ export default function Projects() {
               height: '70vh',
               borderRadius: '50%',
               filter: 'blur(140px)',
+              // backgroundColor: project.color,
               opacity: i === 0 ? 0.14 : 0,
               pointerEvents: 'none',
               zIndex: 0,

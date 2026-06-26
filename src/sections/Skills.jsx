@@ -52,7 +52,7 @@ export default function Skills() {
           fit={0.5}
           minRadius={450}
           maxVerticalRotationDeg={20}
-          segments={34}
+          segments={28}
           dragDampening={0}
           overlayBlurColor="#000000"
           accentColor="#00D4FF"
