@@ -460,3 +460,14 @@ html {
 html::-webkit-scrollbar {
   display: none;
 }
+
+::selection {
+  background: #00E5FF;
+  color: #000;
+  text-shadow: none;
+}
+
+::-moz-selection {
+  background: #00E5FF;
+  color: #000;
+}

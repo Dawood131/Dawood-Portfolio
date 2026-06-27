@@ -2,8 +2,10 @@ import SkillsDome from '../components/SkillsDome'
 import { skills } from '../data/skills'
 
 export default function Skills() {
+  const isMobile = window.innerWidth < 768;
+
   return (
-    <section style={{ position: 'relative', padding: '100px 6vw 60px', overflow: 'hidden',}}>
+    <section style={{ position: 'relative', padding: '100px 6vw 60px', overflow: 'hidden', }}>
       <div
         aria-hidden="true"
         style={{
@@ -20,7 +22,7 @@ export default function Skills() {
         }}
       />
 
-      <div style={{ position: 'relative', zIndex: 1, marginBottom: '60px' }}>
+      <div style={{ position: 'relative', zIndex: 1, marginBottom: '100px' }}>
         <p style={{
           fontSize: '10px', letterSpacing: '0.3em', textTransform: 'uppercase',
           color: 'rgba(255,255,255,0.3)', marginBottom: '10px',
@@ -46,13 +48,19 @@ export default function Skills() {
         </p>
       </div>
 
-      <div style={{ position: 'relative', zIndex: 1, height: 'clamp(420px, 60vh, 640px)' }}>
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          height: isMobile ? "350px" : "clamp(420px,60vh,640px)",
+        }}
+      >
         <SkillsDome
           skills={skills}
-          fit={0.5}
-          minRadius={450}
+          fit={isMobile ? 0.85 : 0.5}
+          minRadius={isMobile ? 170 : 450}
+          segments={isMobile ? 18 : 28}
           maxVerticalRotationDeg={20}
-          segments={28}
           dragDampening={0}
           overlayBlurColor="#000000"
           accentColor="#00D4FF"
