@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { projects } from '../data/projects'
 import { getLenis } from '../lib/lenis'
+import { Helmet } from "react-helmet-async";
 
 export default function ProjectDetail() {
   const { id } = useParams()
@@ -24,163 +25,156 @@ export default function ProjectDetail() {
 
   if (!project) {
     return (
-      <main
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '16px',
-          color: 'white',
-          fontFamily: 'Inter, sans-serif',
-        }}
-      >
-        <p style={{ color: 'rgba(255,255,255,0.6)' }}>Project not found.</p>
-        <Link to="/projects" style={{ color: '#00D4FF', textDecoration: 'none', fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-          ← Back to projects
-        </Link>
-      </main>
+      <>
+        <Helmet>
+          <title>Project Not Found | Dawood Butt</title>
+        </Helmet>
+        <main
+          style={{
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '16px',
+            color: 'white',
+            fontFamily: 'Inter, sans-serif',
+          }}
+        >
+          <p style={{ color: 'rgba(255,255,255,0.6)' }}>Project not found.</p>
+          <Link to="/projects" style={{ color: '#00D4FF', textDecoration: 'none', fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            ← Back to projects
+          </Link>
+        </main>
+      </>
     )
   }
 
   return (
-    <main
-      style={{
-        minHeight: '100vh',
-        padding: '140px 6vw 100px',
-        color: 'white',
-        fontFamily: 'Inter, sans-serif',
-        background: '#0a0a0a',
-      }}
-    >
-      <button
-        onClick={() => {
-          if (window.history.state && window.history.state.idx > 0) {
-            navigate(-1)
-          } else {
-            navigate('/')
-          }
-        }}
-        style={{
-          background: 'none',
-          border: 'none',
-          color: 'rgba(255,255,255,0.5)',
-          fontSize: '12px',
-          letterSpacing: '0.15em',
-          textTransform: 'uppercase',
-          cursor: 'pointer',
-          fontFamily: 'Inter, sans-serif',
-          padding: 0,
-          marginBottom: '32px',
-          display: 'inline-block',
-        }}
-      >
-        ← Back
-      </button>
-
-      <p
-        style={{
-          color: project.color,
-          fontSize: '12px',
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          fontWeight: 700,
-          marginBottom: '14px',
-        }}
-      >
-        {project.subtitle}
-      </p>
-
-      <h1
-        style={{
-          fontSize: 'clamp(2.6rem, 6vw, 5.5rem)',
-          fontWeight: 800,
-          letterSpacing: '-0.03em',
-          lineHeight: 0.96,
-          marginBottom: '28px',
-        }}
-      >
-        {project.title}
-      </h1>
-
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '960px',
-          borderRadius: '20px',
-          overflow: 'hidden',
-          marginBottom: '36px',
-          border: '1px solid rgba(255,255,255,0.08)',
-        }}
-      >
-        <img
-          src={project.img}
-          alt={project.title}
-          style={{ width: '100%', height: 'auto', display: 'block' }}
+    <>
+      <Helmet>
+        <title>{`${project.title} | Dawood Butt`}</title>
+        <meta
+          name="description"
+          content={project.description}
         />
-      </div>
-
-      <p
+      </Helmet>
+      <main
         style={{
-          maxWidth: '700px',
-          lineHeight: 1.75,
-          color: 'rgba(255,255,255,0.65)',
-          fontSize: '15px',
-          marginBottom: '28px',
+          minHeight: '100vh',
+          padding: '140px 6vw 100px',
+          color: 'white',
+          fontFamily: 'Inter, sans-serif',
+          background: '#0a0a0a',
         }}
       >
-        {project.description}
-      </p>
-
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '40px' }}>
-        {project.tech.map((t, i) => (
-          <span
-            key={i}
-            style={{
-              fontSize: '11px',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.6)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              padding: '7px 16px',
-              borderRadius: '8px',
-              background: 'rgba(255,255,255,0.03)',
-            }}
-          >
-            {t}
-          </span>
-        ))}
-      </div>
-
-      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-        <a
-          href={project.live}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={() => {
+            if (window.history.state && window.history.state.idx > 0) {
+              navigate(-1)
+            } else {
+              navigate('/')
+            }
+          }}
           style={{
-            background: project.color,
-            color: '#000',
-            padding: '13px 26px',
-            borderRadius: '999px',
-            textDecoration: 'none',
-            fontWeight: 700,
+            background: 'none',
+            border: 'none',
+            color: 'rgba(255,255,255,0.5)',
             fontSize: '12px',
-            letterSpacing: '0.12em',
+            letterSpacing: '0.15em',
             textTransform: 'uppercase',
+            cursor: 'pointer',
+            fontFamily: 'Inter, sans-serif',
+            padding: 0,
+            marginBottom: '32px',
+            display: 'inline-block',
           }}
         >
-          Live Demo
-        </a>
+          ← Back
+        </button>
 
-        {project.github && (
+        <p
+          style={{
+            color: project.color,
+            fontSize: '12px',
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            fontWeight: 700,
+            marginBottom: '14px',
+          }}
+        >
+          {project.subtitle}
+        </p>
+
+        <h1
+          style={{
+            fontSize: 'clamp(2.6rem, 6vw, 5.5rem)',
+            fontWeight: 800,
+            letterSpacing: '-0.03em',
+            lineHeight: 0.96,
+            marginBottom: '28px',
+          }}
+        >
+          {project.title}
+        </h1>
+
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '960px',
+            borderRadius: '20px',
+            overflow: 'hidden',
+            marginBottom: '36px',
+            border: '1px solid rgba(255,255,255,0.08)',
+          }}
+        >
+          <img
+            src={project.img}
+            alt={project.title}
+            style={{ width: '100%', height: 'auto', display: 'block' }}
+          />
+        </div>
+
+        <p
+          style={{
+            maxWidth: '700px',
+            lineHeight: 1.75,
+            color: 'rgba(255,255,255,0.65)',
+            fontSize: '15px',
+            marginBottom: '28px',
+          }}
+        >
+          {project.description}
+        </p>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '40px' }}>
+          {project.tech.map((t, i) => (
+            <span
+              key={i}
+              style={{
+                fontSize: '11px',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                color: 'rgba(255,255,255,0.6)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                padding: '7px 16px',
+                borderRadius: '8px',
+                background: 'rgba(255,255,255,0.03)',
+              }}
+            >
+              {t}
+            </span>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
           <a
-            href={project.github}
+            href={project.live}
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              border: '1px solid rgba(255,255,255,0.2)',
-              color: 'white',
+              background: project.color,
+              color: '#000',
               padding: '13px 26px',
               borderRadius: '999px',
               textDecoration: 'none',
@@ -190,10 +184,31 @@ export default function ProjectDetail() {
               textTransform: 'uppercase',
             }}
           >
-            GitHub
+            Live Demo
           </a>
-        )}
-      </div>
-    </main>
+
+          {project.github && (
+            <a
+              href={project.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                border: '1px solid rgba(255,255,255,0.2)',
+                color: 'white',
+                padding: '13px 26px',
+                borderRadius: '999px',
+                textDecoration: 'none',
+                fontWeight: 700,
+                fontSize: '12px',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+              }}
+            >
+              GitHub
+            </a>
+          )}
+        </div>
+      </main>
+    </>
   )
 }

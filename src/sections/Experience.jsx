@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { experience } from '../data/experience'
+import RevealText from '../components/RevealText'
 
 const MONTHS = {
   january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
@@ -209,7 +210,6 @@ export default function Experience() {
           transform: translateX(-50%);
           width: 60vw;
           height: 50vh;
-          background: #00D4FF;
           filter: blur(150px);
           opacity: 0.07;
           pointer-events: none;
@@ -615,7 +615,15 @@ export default function Experience() {
             <span className="exp-eyebrow-dot" />
             Career Log
           </p>
-          <h2 className="exp-heading">EXPERIENCE</h2>
+          <RevealText
+            text="EXPERIENCE"
+            tag="h2"
+            splitType="chars"
+            delay={40}
+            duration={0.8}
+            className="font-bold text-5xl md:text-7xl"
+            textAlign="left"
+          />
         </div>
 
         <div className="exp-stats">

@@ -158,7 +158,6 @@ export default function Navbar() {
     }
   }, [])
 
-  // ── Lightbox open/close animation + escape-to-close + scroll-lock ──
   useEffect(() => {
     if (!previewOpen) return
 
@@ -459,7 +458,7 @@ export default function Navbar() {
       <div id="nav-outer" className="hidden md:flex">
         <div id="nav-pill" ref={pillRef}>
           <div id="navbar-logo-target">
-            <span className="nav-logo-full" ref={logoFullRef}>DAWOOD BUTT</span>
+            <span className="nav-logo-full" ref={logoFullRef}>Dawood Butt</span>
             <button
               type="button"
               className="nav-logo-short"

@@ -6,6 +6,7 @@ import { useDispatch } from 'react-redux'
 import { projects } from '../data/projects'
 import { getLenis } from '../lib/lenis'
 import { setSelectedProject } from '../store/projectSlice'
+import RevealText from '../components/RevealText'
 
 gsap.registerPlugin(ScrollTrigger)
 ScrollTrigger.config({ ignoreMobileResize: true })
@@ -133,15 +134,6 @@ export default function Projects() {
         })
 
         glows.forEach((g, i) => gsap.set(g, { opacity: i === 0 ? 0.14 : 0 }))
-
-        // On mobile, touch-scroll momentum is much jerkier than a desktop
-        // wheel, and scrub:1 makes the pinned card's position lag ~1s
-        // behind the actual scroll then "catch up" — that catch-up is
-        // exactly the vibration/judder you see right as a card pins and
-        // the next one overlaps it. scrub:true removes the lag entirely
-        // (1:1 with scroll position, no smoothing), which eliminates it.
-        // anticipatePin's pre-emptive offset is also a source of a small
-        // jump at the pin boundary on touch, so it's disabled on mobile too.
         const isMobile = window.matchMedia('(max-width: 768px)').matches
 
         const tl = gsap.timeline({
@@ -150,9 +142,9 @@ export default function Projects() {
             start: 'top top',
             end: `+=${window.innerHeight * n}`,
             pin: true,
-            pinType: 'transform',
+           pinType: isMobile ? 'fixed' : 'transform',
             scrub: isMobile ? true : 1,
-            anticipatePin: isMobile ? 0 : 1,
+            anticipatePin: isMobile ? 0.4 : 1,  
             invalidateOnRefresh: true,
             onUpdate: (self) => {
               const idx = Math.min(n - 1, Math.round(self.progress * (n - 1)))
@@ -485,12 +477,15 @@ export default function Projects() {
             }} />
             Selected Work
           </p>
-          <h2 style={{
-            fontSize: 'clamp(2rem, 5vw, 4rem)', fontWeight: 800, color: 'white',
-            letterSpacing: '-0.035em', lineHeight: 1, fontFamily: 'Inter, sans-serif',
-          }}>
-            PROJECTS
-          </h2>
+          <RevealText
+            text="PROJECTS"
+            tag="h2"
+            splitType="chars"
+            delay={40}
+            duration={0.8}
+            className="font-bold text-5xl md:text-7xl"
+            textAlign="left"
+          />
         </div>
 
         <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '32px' }}>

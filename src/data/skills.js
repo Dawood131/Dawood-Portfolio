@@ -16,6 +16,7 @@ export const skills = [
     { id: 'postman', name: 'Postman', icon: 'https://cdn.simpleicons.org/postman/FF6C37', category: 'tools' },
     { id: 'swagger', name: 'Swagger', icon: 'https://cdn.simpleicons.org/swagger/85EA2D', category: 'tools' },
     { id: 'git', name: 'Git', icon: 'https://cdn.simpleicons.org/git/F05033', category: 'tools' },
+    { id: 'smartsvn', name: 'SmartSVN', icon: 'https://cdn.simpleicons.org/subversion/809CC9', category: 'tools' },
     { id: 'chatgpt', name: 'ChatGPT', icon: 'https://api.iconify.design/simple-icons/openai.svg?color=%23ffffff', category: 'tools' },
     { id: 'claude', name: 'Claude', icon: 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/claude-color.svg', category: 'tools' },
     { id: 'vercel', name: 'Vercel', icon: 'https://cdn.simpleicons.org/vercel/ffffff', category: 'tools' },

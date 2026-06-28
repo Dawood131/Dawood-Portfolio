@@ -17,13 +17,13 @@ export const experience = [
   },
   {
     id: 'jobsterx',
-    role: 'Frontend Developer Intern',
+    role: 'IT Intern · Frontend Development',
     company: 'JobsterX',
     duration: 'September 2025 — March 2026',
     status: 'completed',
     logo: '/files/jobsterx-favicon.png',
     description:
-      'Worked as a remote Frontend Developer Intern, converting Figma designs into responsive React interfaces and collaborating with the team through Git and GitHub.',
+      'Worked remotely as part of the Early Talent Program, converting Figma designs into responsive React interfaces and collaborating with the team through Git and GitHub.',
     bullets: [
       'Converted Figma designs into pixel-perfect React UI',
       'Built reusable, stylish components with Tailwind CSS',

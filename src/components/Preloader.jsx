@@ -110,7 +110,7 @@ export default function Preloader({ onComplete }) {
           ease: 'power4.inOut',
           onComplete() {
             const clone = document.createElement('div')
-            clone.textContent = 'DAWOOD BUTT'
+            clone.textContent = 'Dawood Butt'
             clone.style.cssText = `
           position: fixed;
           top: ${TARGET_TOP}px;
@@ -220,7 +220,7 @@ export default function Preloader({ onComplete }) {
             fontFamily: 'Inter, sans-serif',
           }}
         >
-          DAWOOD BUTT
+          Dawood Butt
         </h1>
 
         <p

@@ -1,5 +1,6 @@
 import SkillsDome from '../components/SkillsDome'
 import { skills } from '../data/skills'
+import RevealText from '../components/RevealText';
 
 export default function Skills() {
   const isMobile = window.innerWidth < 768;
@@ -34,12 +35,15 @@ export default function Skills() {
           }} />
           What I Work With
         </p>
-        <h2 style={{
-          fontSize: 'clamp(2rem, 5vw, 4rem)', fontWeight: 800, color: 'white',
-          letterSpacing: '-0.035em', lineHeight: 1, fontFamily: 'Inter, sans-serif',
-        }}>
-          SKILLS
-        </h2>
+        <RevealText
+          text="SKILLS"
+          tag="h2"
+          splitType="chars"
+          delay={40}
+          duration={0.8}
+          className="font-bold text-5xl md:text-7xl"
+          textAlign="left"
+        />
         <p style={{
           marginTop: '14px', fontSize: '13px', color: 'rgba(255,255,255,0.45)',
           fontFamily: 'Inter, sans-serif', maxWidth: '420px', lineHeight: 1.6,
