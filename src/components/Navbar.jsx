@@ -88,8 +88,8 @@ export default function Navbar() {
         const padV = 22 - progress * 12
         const padH = 48 - progress * 24
         const radius = progress * 999
-        const bgAlpha = progress * 0.90
-        const blurVal = progress * 20
+        const bgAlpha = 0.28 + progress * 0.18
+        const blurVal = 22
 
         gsap.to(pill, {
           width: `${width}%`,
@@ -107,8 +107,8 @@ export default function Navbar() {
           overwrite: 'auto',
         })
 
-        pill.style.backdropFilter = `blur(${blurVal}px)`
-        pill.style.WebkitBackdropFilter = `blur(${blurVal}px)`
+        pill.style.backdropFilter = `blur(${blurVal}px) saturate(180%)`
+        pill.style.WebkitBackdropFilter = `blur(${blurVal}px) saturate(180%)`
 
         gsap.to(linkEls, {
           fontSize: `${12 - progress * 3}px`,
