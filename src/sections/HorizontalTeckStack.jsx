@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { skills } from '../data/skills'
+import RevealText from '../components/RevealText'
 
 const FILTERS = [
   { id: 'all', label: 'All' },
@@ -7,7 +8,7 @@ const FILTERS = [
   { id: 'tools', label: 'Tools' },
 ]
 
-const AUTO_SPEED = 0.045 // px/ms
+const AUTO_SPEED = 0.045 
 const FRICTION = 0.94
 const MOMENTUM_STOP_THRESHOLD = 0.02
 
@@ -82,7 +83,6 @@ export default function TechStack() {
     filter === 'all' ? skills : skills.filter((s) => s.category === filter)
   const doubled = [...filtered, ...filtered]
 
-  // measure half width whenever filter changes / on resize
   useEffect(() => {
     posRef.current = 0
     momentumRef.current = 0
@@ -401,7 +401,15 @@ export default function TechStack() {
               }} />
               Tech Stack
             </p>
-            <h2 className="tech2-title">Tools I Work With</h2>
+            <RevealText
+              text="Tools I Work With"
+              tag="h2"
+              splitType="chars"
+              delay={40}
+              duration={0.8}
+              className="font-bold text-5xl md:text-7xl"
+              textAlign="left"
+            />
             <p className="tech2-subtitle">
               Drag, scroll, or just let it run — a snapshot of the technologies
               I use to design and ship products.

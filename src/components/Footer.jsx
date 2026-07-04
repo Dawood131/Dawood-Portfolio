@@ -21,7 +21,7 @@ const GmailIcon = () => (
   </svg>
 )
 
-export default function Footer() {
+export default function Footer({ showCTA = true }) {
   const year = new Date().getFullYear()
 
   return (
@@ -48,7 +48,6 @@ export default function Footer() {
           pointer-events: none;
         }
 
-        /* ── animated rotating-glow border wrapping the whole card ── */
         .footer-card-wrap {
           position: relative;
           border-radius: 28px;
@@ -124,58 +123,62 @@ export default function Footer() {
         className="relative w-full"
         style={{ padding: 'clamp(40px,5vh,64px) clamp(16px,5vw,60px) clamp(32px,4vh,44px)' }}
       >
-        {/* ── card with animated rotating border ── */}
-        <div className="footer-card-wrap">
-          <div
-            className="footer-card-inner relative w-full flex flex-col items-center text-center"
-            style={{ padding: 'clamp(56px,9vh,96px) clamp(20px,6vw,60px)' }}
-          >
-            <div className="footer-card-glow" aria-hidden="true" />
-
+        {showCTA && (
+          <div className="footer-card-wrap">
             <div
-              className="relative flex items-center gap-2 font-mono uppercase"
-              style={{
-                fontSize: '10px',
-                letterSpacing: '0.22em',
-                color: '#00D4FF',
-                background: 'rgba(0,212,255,0.08)',
-                border: '1px solid rgba(0,212,255,0.25)',
-                borderRadius: '999px',
-                padding: '7px 16px',
-                marginBottom: 'clamp(22px, 4vh, 32px)',
-              }}
+              className="footer-card-inner relative w-full flex flex-col items-center text-center"
+              style={{ padding: 'clamp(56px,9vh,96px) clamp(20px,6vw,60px)' }}
             >
-              <span
-                className="footer-avail-dot rounded-full bg-cyan-400 inline-block"
-                style={{ width: '6px', height: '6px' }}
-              />
-              Open To New Work
+              <div className="footer-card-glow" aria-hidden="true" />
+
+              <div
+                className="relative flex items-center gap-2 font-mono uppercase"
+                style={{
+                  fontSize: '10px',
+                  letterSpacing: '0.22em',
+                  color: '#00D4FF',
+                  background: 'rgba(0,212,255,0.08)',
+                  border: '1px solid rgba(0,212,255,0.25)',
+                  borderRadius: '999px',
+                  padding: '7px 16px',
+                  marginBottom: 'clamp(22px, 4vh, 32px)',
+                }}
+              >
+                <span
+                  className="footer-avail-dot rounded-full bg-cyan-400 inline-block"
+                  style={{ width: '6px', height: '6px' }}
+                />
+                Open To New Work
+              </div>
+
+              <h2
+                className="relative font-bold tracking-[-0.03em] leading-[1.08]"
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  color: '#edeae3',
+                  fontSize: 'clamp(2rem, 5.5vw, 3.8rem)',
+                  marginBottom: 'clamp(28px, 4.5vh, 40px)',
+                }}
+              >
+                Got a project in mind?<br />
+                <span className="text-cyan-400">Let's build it.</span>
+              </h2>
+
+              <Link
+                to="/projects"
+                className="footer-cta-btn relative"
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              >
+                <FolderOpen size={14} strokeWidth={1.8} />
+                See My Work
+              </Link>
             </div>
-
-            <h2
-              className="relative font-bold tracking-[-0.03em] leading-[1.08]"
-              style={{
-                fontFamily: "'Space Grotesk', sans-serif",
-                color: '#edeae3',
-                fontSize: 'clamp(2rem, 5.5vw, 3.8rem)',
-                marginBottom: 'clamp(28px, 4.5vh, 40px)',
-              }}
-            >
-              Got a project in mind?<br />
-              <span className="text-cyan-400">Let's build it.</span>
-            </h2>
-
-            <Link to="/projects" className="footer-cta-btn relative">
-              <FolderOpen size={14} strokeWidth={1.8} />
-              See My Work
-            </Link>
           </div>
-        </div>
+        )}
 
-        {/* ── bottom bar, outside the card ── */}
         <div
           className="w-full flex flex-col md:flex-row items-center justify-between gap-5"
-          style={{ marginTop: "clamp(24px, 4vh, 32px)" }}
+          style={{ marginTop: showCTA ? "clamp(24px, 4vh, 32px)" : 0 }}
         >
           {/* Social Icons */}
           <div className="flex items-center justify-center gap-5 md:order-2">

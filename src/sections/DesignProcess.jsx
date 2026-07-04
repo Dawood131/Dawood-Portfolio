@@ -318,7 +318,7 @@ export default function DesignProcess() {
                     <RevealText
                         text="My Design Process"
                         tag="h2"
-                        splitType="words"
+                        splitType="chars"
                         delay={50}
                         duration={0.8}
                         className="font-bold text-4xl md:text-5xl"

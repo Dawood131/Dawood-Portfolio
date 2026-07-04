@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import ProjectsPage from "../components/ProjectPage";
+import Footer from "../components/Footer";
 
 export default function Projects() {
   return (
@@ -12,7 +13,10 @@ export default function Projects() {
         />
       </Helmet>
 
-      <main><ProjectsPage /></main>
+      <main>
+        <ProjectsPage />
+        <Footer showCTA={false} />
+      </main>
     </>
   );
 }
