@@ -8,33 +8,56 @@ function pad2(n) {
   return String(n).padStart(2, '0')
 }
 
-function Media({ media, className = '', controls = false }) {
+function Media({ media, className = '', controls = false, onLoad }) {
+  const [loaded, setLoaded] = useState(false)
+
   if (!media) return null
+
+  const handleLoad = () => {
+    setLoaded(true)
+    onLoad?.()
+  }
 
   if (media.type === 'video') {
     return (
-      <video
-        className={`pd-media ${className}`}
-        data-type="video"
-        src={media.src}
-        poster={media.poster}
-        autoPlay={!controls}
-        loop={!controls}
-        muted={!controls}
-        controls={controls}
-        playsInline
-      />
+      <div className={`pd-media-wrap ${loaded ? 'is-loaded' : ''}`}>
+        {!loaded && (
+          <div className="pd-media-skeleton">
+            <span className="pd-media-sweep" />
+          </div>
+        )}
+        <video
+          className={`pd-media ${className}`}
+          data-type="video"
+          src={media.src}
+          poster={media.poster}
+          autoPlay={!controls}
+          loop={!controls}
+          muted={!controls}
+          controls={controls}
+          playsInline
+          onLoadedData={handleLoad}
+        />
+      </div>
     )
   }
 
   return (
-    <img
-      className={`pd-media ${className}`}
-      data-type="image"
-      src={media.src}
-      alt={media.alt || ''}
-      loading="lazy"
-    />
+    <div className={`pd-media-wrap ${loaded ? 'is-loaded' : ''}`}>
+      {!loaded && (
+        <div className="pd-media-skeleton">
+          <span className="pd-media-sweep" />
+        </div>
+      )}
+      <img
+        className={`pd-media ${className}`}
+        data-type="image"
+        src={media.src}
+        alt={media.alt || ''}
+        loading="lazy"
+        onLoad={handleLoad}
+      />
+    </div>
   )
 }
 
@@ -149,15 +172,12 @@ function useActiveSection(count, onActive) {
 function ProjectView({ project, prevProject, nextProject }) {
   const [lightboxItem, setLightboxItem] = useState(null)
   const [activeIndex, setActiveIndex] = useState(0)
-  const [heroRevealed, setHeroRevealed] = useState(false)
+  const [heroLoaded, setHeroLoaded] = useState(false)
 
   useEffect(() => {
     const lenis = getLenis()
     if (lenis) lenis.scrollTo(0, { immediate: true })
     else window.scrollTo(0, 0)
-
-    const raf = requestAnimationFrame(() => setHeroRevealed(true))
-    return () => cancelAnimationFrame(raf)
   }, [])
 
   const heroMedia = project.video
@@ -165,6 +185,17 @@ function ProjectView({ project, prevProject, nextProject }) {
     : project.img
       ? { type: 'image', src: project.img, alt: project.title }
       : null
+
+  useEffect(() => {
+    if (heroMedia?.type === 'image') {
+      const link = document.createElement('link')
+      link.rel = 'preload'
+      link.as = 'image'
+      link.href = heroMedia.src
+      document.head.appendChild(link)
+      return () => document.head.removeChild(link)
+    }
+  }, [heroMedia])
 
   const sections = useSections(project)
   const hasToc = sections.length > 1
@@ -263,7 +294,7 @@ function ProjectView({ project, prevProject, nextProject }) {
 
           <div className="pd-content">
             {heroMedia && (
-              <section className={`pd-hero ${heroRevealed ? 'is-revealed' : ''}`}>
+              <section className={`pd-hero ${heroLoaded ? 'is-revealed' : ''}`}>
                 <button
                   type="button"
                   className="pd-hero-frame"
@@ -271,9 +302,9 @@ function ProjectView({ project, prevProject, nextProject }) {
                   onClick={() => setLightboxItem(heroMedia)}
                   aria-label="Open full view"
                 >
-                  <Media media={heroMedia} className="pd-hero-media" />
+                  <Media media={heroMedia} className="pd-hero-media" onLoad={() => setHeroLoaded(true)} />
                   <CornerMarks />
-                  <span className="pd-hero-wipe" />
+                  <span className={`pd-hero-wipe ${heroLoaded ? '' : 'is-loading'}`} />
                   <span className="pd-shot-expand">⤢ Click to expand</span>
                 </button>
               </section>
@@ -553,15 +584,49 @@ const PD_STYLES = `
   .pd-hero-frame .pd-media[data-type='video'] { object-fit: cover; }
   .pd-hero-frame .pd-media[data-type='image'] { object-fit: contain; }
 
+  /* ── media loading state ── */
+  .pd-media-wrap { position: relative; width: 100%; height: 100%; }
+  .pd-hero-frame .pd-media-wrap { width: 100%; height: 100%; }
+  .pd-shot .pd-media-wrap,
+  .pd-lightbox-inner .pd-media-wrap {
+    width: 100%; height: auto; display: block;
+  }
+  .pd-shot .pd-media-wrap:not(.is-loaded) { aspect-ratio: 16 / 9; }
+
+  .pd-media-wrap .pd-media { opacity: 0; transition: opacity .5s ease; }
+  .pd-media-wrap.is-loaded .pd-media { opacity: 1; }
+
+  .pd-media-skeleton {
+    position: absolute; inset: 0;
+    background: linear-gradient(100deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 100%);
+    overflow: hidden;
+  }
+  .pd-media-sweep {
+    position: absolute; top: 0; bottom: 0; left: -45%;
+    width: 45%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.16), transparent);
+    animation: pd-media-sweep 1.4s ease-in-out infinite;
+  }
+  @keyframes pd-media-sweep {
+    0% { left: -45%; }
+    100% { left: 100%; }
+  }
+
   .pd-hero-wipe {
     position: absolute; inset: 0 0 0 auto;
     width: 100%;
     background: var(--ink);
     border-left: 2px solid var(--accent);
     box-shadow: -6px 0 28px var(--accent);
-    transition: width 1s cubic-bezier(.65,0,.35,1);
   }
+  .pd-hero-wipe:not(.is-loading) { transition: width 1s cubic-bezier(.65,0,.35,1); }
+  .pd-hero-wipe.is-loading { animation: pd-hero-scan 1.6s ease-in-out infinite; }
   .pd-hero.is-revealed .pd-hero-wipe { width: 0%; }
+
+  @keyframes pd-hero-scan {
+    0%, 100% { width: 100%; }
+    50% { width: 62%; }
+  }
 
   @media (max-width: 700px) {
     .pd-hero-frame { aspect-ratio: 4/3; max-height: 300px; }
@@ -702,5 +767,7 @@ const PD_STYLES = `
 
   @media (prefers-reduced-motion: reduce) {
     .pd-reveal, .pd-hero-wipe { transition: none !important; opacity: 1 !important; transform: none !important; width: 0 !important; }
+    .pd-media-sweep, .pd-hero-wipe.is-loading { animation: none !important; }
+    .pd-media-wrap .pd-media { transition: none !important; opacity: 1 !important; }
   }
 `
