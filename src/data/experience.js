@@ -5,7 +5,7 @@ export const experience = [
     company: 'Offneo',
     duration: 'April 2026 — Present',
     status: 'active',
-    logo: '/files/Company Logo/Offneo icon.png',
+    logo: '/files/Company Logo/Offneo icon.webp',
     description:
       'Working full-time in an onsite environment, building a complete web application platform in close collaboration with the backend team — with API integration at the core of the work.',
     bullets: [
@@ -21,7 +21,7 @@ export const experience = [
     company: 'JobsterX',
     duration: 'September 2025 — March 2026',
     status: 'completed',
-    logo: '/files/Company Logo/jobsterx-favicon.png',
+    logo: '/files/Company Logo/jobsterx-favicon.webp',
     description:
       'Worked remotely as part of the Early Talent Program, converting Figma designs into responsive React interfaces and collaborating with the team through Git and GitHub.',
     bullets: [

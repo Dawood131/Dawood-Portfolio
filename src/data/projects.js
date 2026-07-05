@@ -18,8 +18,8 @@ export const projects = [
     live: 'https://cvex-builder-analyzer.vercel.app/',
     color: '#C4B5FD',
     bg: '#040D12',
-    img: '/files/Cvex/Hero Section.png',
-    video: '/files/Cvex/Cvex Video.mp4',
+    img: '/files/Cvex/Hero Section.webp',
+    video: '/files/Cvex/Cvex Video.compressed.mp4',
     num: '01',
     sections: [
       {
@@ -29,7 +29,7 @@ export const projects = [
         body: 'A clean, focused homepage introduces the product and gets a new CV started in one click, no clutter before the value.',
         media: {
           type: 'image',
-          src: '/files/Cvex/Home Page.png',
+          src: '/files/Cvex/Home Page.webp',
           alt: 'CVEX home page',
         },
       },
@@ -40,7 +40,7 @@ export const projects = [
         body: 'Guided form sections feed a real-time preview, so the finished CV is always one glance away instead of a final export surprise.',
         media: {
           type: 'image',
-          src: '/files/Cvex/CV Builder.png',
+          src: '/files/Cvex/CV Builder.webp',
           alt: 'CVEX builder screen',
         },
       },
@@ -51,7 +51,7 @@ export const projects = [
         body: 'Every CV is scored and annotated by Gemini, surfacing concrete suggestions instead of a generic pass/fail grade.',
         media: {
           type: 'image',
-          src: '/files/Cvex/CV Analyzer.png',
+          src: '/files/Cvex/CV Analyzer.webp',
           alt: 'CVEX analyzer screen',
         },
       },
@@ -62,7 +62,7 @@ export const projects = [
         body: 'A full pass through the product: draft a CV, preview it live, then send it straight into the analyzer.',
         tech: ['React', 'Gemini API', 'Supabase'],
         links: [{ label: 'Live Demo', href: 'https://cvex-builder-analyzer.vercel.app/' }],
-        media: { type: 'video', src: '/files/Cvex/Cvex Video.mp4' },
+        media: { type: 'video', src: '/files/Cvex/Cvex Video.compressed.mp4' },
       },
     ],
   },
@@ -86,8 +86,8 @@ export const projects = [
     live: 'https://nova-one-taupe.vercel.app/',
     color: '#ffffff',
     bg: '#0d0d0d',
-    img: '/files/Nova/Hero Section.png',
-    video: '/files/Nova/Nova Video.mp4',
+    img: '/files/Nova/Hero Section.webp',
+    video: '/files/Nova/Nova Video.compressed.mp4',
     num: '02',
     sections: [
       {
@@ -97,7 +97,7 @@ export const projects = [
         body: 'The homepage leads with featured collections and clear entry points, so shoppers land on something relevant immediately.',
         media: {
           type: 'image',
-          src: '/files/Nova/Home page.png',
+          src: '/files/Nova/Home page.webp',
           alt: 'NOVA home page',
         },
       },
@@ -108,7 +108,7 @@ export const projects = [
         body: 'Product listings are grouped and filterable by category, so shoppers land on relevant items in one step.',
         media: {
           type: 'image',
-          src: '/files/Nova/List.png',
+          src: '/files/Nova/List.webp',
           alt: "NOVA category listing page",
         },
       },
@@ -119,7 +119,7 @@ export const projects = [
         body: 'Search and filtering work together, narrowing results live as shoppers type or adjust facets.',
         media: {
           type: 'image',
-          src: '/files/Nova/Search page.png',
+          src: '/files/Nova/Search page.webp',
           alt: 'NOVA search page',
         },
       },
@@ -130,7 +130,7 @@ export const projects = [
         body: 'Each product page keeps imagery, price and add-to-cart in one clean view, no unnecessary scrolling.',
         media: {
           type: 'image',
-          src: '/files/Nova/Product.png',
+          src: '/files/Nova/Product.webp',
           alt: 'NOVA product detail page',
         },
       },
@@ -141,7 +141,7 @@ export const projects = [
         body: 'Cart review, quantity updates and payment steps are laid out plainly, keeping checkout friction as low as possible.',
         media: {
           type: 'image',
-          src: '/files/Nova/Checkout.png',
+          src: '/files/Nova/Checkout.webp',
           alt: 'NOVA checkout page',
         },
       },
@@ -152,7 +152,7 @@ export const projects = [
         body: 'A full run from browsing to checkout, showing the cart, transitions, and responsive behavior in motion.',
         tech: ['React', 'Redux', 'Redux Toolkit'],
         links: [{ label: 'Live Demo', href: 'https://nova-one-taupe.vercel.app/' }],
-        media: { type: 'video', src: '/files/Nova/Nova Video.mp4' },
+        media: { type: 'video', src: '/files/Nova/Nova Video.compressed.mp4' },
       },
     ],
   },
@@ -172,8 +172,8 @@ export const projects = [
     live: 'https://jobster-x.vercel.app/',
     color: '#7C6AF7',
     bg: '#06040f',
-    img: '/files/Jobsterx/Hero Section.png',
-    video: '/files/Jobsterx/Jobsterx Video.mp4',
+    img: '/files/Jobsterx/Hero Section.webp',
+    video: '/files/Jobsterx/Jobsterx Video.compressed.mp4',
     num: '03',
     sections: [
       {
@@ -183,7 +183,7 @@ export const projects = [
         body: 'A persistent sidebar keeps profile, subscription and tools one click away, no deep navigation required.',
         media: {
           type: 'image',
-          src: '/files/Jobsterx/Dashbard.png',
+          src: '/files/Jobsterx/Dashbard.webp',
           alt: 'JobsterX dashboard',
         },
       },
@@ -194,7 +194,7 @@ export const projects = [
         body: 'Profile fields, resume status and account details live together, editable without leaving the page.',
         media: {
           type: 'image',
-          src: '/files/Jobsterx/Profile.png',
+          src: '/files/Jobsterx/Profile.webp',
           alt: 'JobsterX profile page',
         },
       },
@@ -205,7 +205,7 @@ export const projects = [
         body: 'Current plan, usage and upgrade options are laid out plainly, so switching plans is a single decision.',
         media: {
           type: 'image',
-          src: '/files/Jobsterx/Subscription.png',
+          src: '/files/Jobsterx/Subscription.webp',
           alt: 'JobsterX subscription page',
         },
       },
@@ -216,7 +216,7 @@ export const projects = [
         body: 'Dashboard, profile and subscription flows shown back to back, giving a real sense of how the app feels in motion.',
         tech: ['React', 'Tailwind CSS'],
         links: [{ label: 'Live Demo', href: 'https://jobster-x.vercel.app/' }],
-        media: { type: 'video', src: '/files/Jobsterx/Jobsterx Video.mp4' },
+        media: { type: 'video', src: '/files/Jobsterx/Jobsterx Video.compressed.mp4' },
       },
     ],
   },
@@ -238,8 +238,8 @@ export const projects = [
     ],
     color: '#60A5FA',
     bg: '#111827',
-    img: '/files/Old Portfolio/Old portfolio Hero.png',
-    video: '/files/Old Portfolio/Old portfolio vidoe.mp4',
+    img: '/files/Old Portfolio/Old portfolio Hero.webp',
+    video: '/files/Old Portfolio/Old portfolio vidoe.compressed.mp4',
     num: '04',
     sections: [
       {
@@ -249,7 +249,7 @@ export const projects = [
         body: 'Every section — hero, about, skills, projects, experience, future goals and contact — was hand-coded in plain HTML, CSS and JavaScript, with no build tools or frameworks involved.',
         media: {
           type: 'image',
-          src: '/files/Old Portfolio/Main page.png',
+          src: '/files/Old Portfolio/Main page.webp',
           alt: 'Old portfolio main page',
         },
       },
