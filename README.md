@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="/files/Logo.webp" alt="Dawood Portfolio Logo" width="120" />
+  <img src="./public/files/Logo.webp" alt="Dawood Portfolio Logo" width="120" />
 </p>
 
 # Dawood Portfolio
