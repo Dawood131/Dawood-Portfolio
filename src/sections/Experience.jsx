@@ -589,22 +589,26 @@ export default function Experience() {
         }
 
         /* very small phones: stack the stats bar so nothing squeezes */
-        @media (max-width: 380px) {
-          .exp-stats {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 10px;
-            padding: 14px 16px;
-          }
-          .exp-stat {
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            min-width: 0;
-          }
-          .exp-stat-divider { width: 100%; height: 1px; }
-        }
+       @media (max-width: 480px) {
+  .exp-stats {
+    gap: 10px;
+    padding: 12px 14px;
+  }
+  .exp-stat {
+    min-width: 0;
+    flex: 1;
+  }
+  .exp-stat-value {
+    font-size: 12px;
+    max-width: 100%;
+  }
+  .exp-stat-label {
+    font-size: 8.5px;
+  }
+  .exp-stat-divider {
+    height: 22px;
+  }
+}
       `}</style>
 
       <section className="exp-section">

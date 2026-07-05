@@ -138,7 +138,7 @@ export default function Achievements() {
         <>
             <style>{`
         .ach-section { position: relative; overflow: hidden; padding: clamp(80px, 10vh, 120px) 6vw; }
-        .ach-glow { position: absolute; bottom: -10%; right: 0%; width: 50vw; height: 55vh; border-radius: 50%; background: #00D4FF; filter: blur(170px); opacity: 0.08; pointer-events: none; z-index: 0; }
+        .ach-glow { position: absolute; bottom: -10%; right: 0%; width: 50vw; height: 55vh; border-radius: 50%; ; filter: blur(170px); opacity: 0.08; pointer-events: none; z-index: 0; }
         .ach-header { position: relative; z-index: 1; margin-bottom: clamp(40px, 6vh, 60px); display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px; }
         .ach-eyebrow { display: inline-flex; align-items: center; gap: 9px; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.3); font-family: Inter, sans-serif; margin-bottom: 16px; }
         .ach-subtitle { font-family: Inter, sans-serif; font-size: 14px; line-height: 1.75; color: rgba(255,255,255,0.45); max-width: 460px; margin-top: 16px; }

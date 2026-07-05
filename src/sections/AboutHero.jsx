@@ -5,7 +5,7 @@ import RevealText from '../components/RevealText'
 import { Link } from 'react-router-dom'
 
 const RESUME_PATH = '/files/Dawood Frontend Developer Resume.pdf.pdf'
-const PHOTO = '/files/IMG-20250815-WA0006.jpg'
+const PHOTO = '/files/My Photo.jpg'
 
 export default function AboutHero() {
     const sectionRef = useRef(null)

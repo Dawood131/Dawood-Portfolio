@@ -1,11 +1,10 @@
-import { useState, useMemo, useRef, useCallback, useLayoutEffect } from 'react'
+import { useState, useMemo, useRef, useCallback, useLayoutEffect, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { projects } from '../data/projects'
 import { setSelectedProject } from '../store/projectSlice'
 import RevealText from '../components/RevealText'
 
-/* ── tilt hook ─────────────────────────── */
 function useTilt(deg = 4) {
     const ref = useRef(null)
     const raf = useRef(null)
@@ -30,60 +29,115 @@ function useTilt(deg = 4) {
     return { ref, onMouseMove, onMouseLeave }
 }
 
+/* ── reveal-on-scroll hook ─────────────── */
+function useReveal(rootMargin = '-10% 0px') {
+    const ref = useRef(null)
+    const [visible, setVisible] = useState(false)
+    useEffect(() => {
+        const el = ref.current
+        if (!el) return
+        const io = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setVisible(true)
+                    io.disconnect()
+                }
+            },
+            { threshold: 0.12, rootMargin }
+        )
+        io.observe(el)
+        return () => io.disconnect()
+    }, [rootMargin])
+    return { ref, visible }
+}
+
 /* ── card ──────────────────────────────── */
 function ProjCard({ project, delay = 0 }) {
     const navigate = useNavigate()
     const dispatch = useDispatch()
-    const tilt = useTilt(4)
+    const tilt = useTilt(3.5)
+    const reveal = useReveal()
 
     const open = () => {
         dispatch(setSelectedProject(project))
         navigate(`/project/${project.id}`)
     }
 
+    const setRefs = (node) => {
+        tilt.ref.current = node
+        reveal.ref.current = node
+    }
+
     return (
         <article
-            ref={tilt.ref}
+            ref={setRefs}
             onMouseMove={tilt.onMouseMove}
             onMouseLeave={tilt.onMouseLeave}
             onClick={open}
             onKeyDown={(e) => e.key === 'Enter' && open()}
-            className="pc"
+            className={`pc${reveal.visible ? ' pc--in' : ''}`}
             tabIndex={0}
             role="button"
             aria-label={`Open ${project.title} project`}
-            style={{ '--accent': project.color, '--accentd': `${project.color}40`, animationDelay: `${delay}ms` }}
+            style={{
+                '--accent': project.color,
+                '--accentd': `${project.color}40`,
+                '--delay': `${delay}ms`,
+            }}
         >
-            <div className="pc-panel" style={{ background: project.bg }}>
-                <div className="pc-glow-top" style={{
-                    background: `radial-gradient(ellipse 80% 55% at 50% 0%, ${project.color}50, transparent 68%)`
-                }} />
-                <div className="pc-spotlight" />
-                <img className="pc-img" src={project.img} alt={project.title} loading="lazy" draggable="false" />
-                <span className="pc-index">{project.num}</span>
-                <a
-                    className="pc-live"
-                    href={project.live}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label={`${project.title} live site`}
-                >
-                    Live
-                    <svg width="10" height="10" viewBox="0 0 11 11" fill="none">
-                        <path d="M2 9L9 2M9 2H3.5M9 2V7.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                </a>
+            <div className="pc-frame">
+                <div className="pc-panel" style={{ background: project.bg }}>
+                    <div className="pc-glow-top" style={{
+                        background: `radial-gradient(ellipse 80% 55% at 50% 0%, ${project.color}55, transparent 68%)`
+                    }} />
+                    <div className="pc-grid-lines" />
+                    <div className="pc-spotlight" />
+
+                    <div className="pc-img-wrap">
+                        <img className="pc-img" src={project.img} alt={project.title} loading="lazy" draggable="false" />
+                    </div>
+
+                    <span className="pc-index">{project.num}</span>
+                    {/* <span className="pc-cat-float" style={{ color: project.color, borderColor: `${project.color}45` }}>
+                        {project.category}
+                    </span> */}
+
+                    <a
+                        className="pc-live"
+                        href={project.live}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`${project.title} live site`}
+                    >
+                        <span>Visit site</span>
+                        <svg width="10" height="10" viewBox="0 0 11 11" fill="none">
+                            <path d="M2 9L9 2M9 2H3.5M9 2V7.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                    </a>
+                </div>
+                <div className="pc-edge" aria-hidden="true" />
             </div>
 
+            <div className="pc-underline" aria-hidden="true" />
+
             <div className="pc-meta">
-                <div className="pc-meta-text">
+                <div className="pc-meta-row">
                     <h3 className="pc-name">{project.title}</h3>
-                    <p className="pc-sub">{project.subtitle}</p>
+                    <span className="pc-arrow" aria-hidden="true">
+                        <svg width="13" height="13" viewBox="0 0 11 11" fill="none">
+                            <path d="M2 9L9 2M9 2H3.5M9 2V7.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                    </span>
                 </div>
-                <span className="pc-cat" style={{ color: project.color, borderColor: `${project.color}45` }}>
-                    {project.category}
-                </span>
+                <p className="pc-sub">{project.subtitle}</p>
+                {Array.isArray(project.tech) && project.tech.length > 0 && (
+                    <ul className="pc-tech">
+                        {project.tech.slice(0, 4).map((t) => (
+                            <li key={t}>{t}</li>
+                        ))}
+                    </ul>
+                )}
             </div>
         </article>
     )
@@ -108,7 +162,6 @@ export default function ProjectsPage() {
     const left = filtered.filter((_, i) => i % 2 === 0)
     const right = filtered.filter((_, i) => i % 2 === 1)
 
-    /* JS stagger: measure first left card, offset right col by half its height */
     useLayoutEffect(() => {
         const apply = () => {
             if (!leftRef.current || !rightRef.current) return
@@ -136,7 +189,6 @@ export default function ProjectsPage() {
         .pp::before {
           content: '';
           position: absolute; inset: 0; pointer-events: none; z-index: 0;
-          background: radial-gradient(ellipse 65% 45% at 50% -5%, rgba(0,212,255,.09) 0%, transparent 65%);
         }
 
         /* ── header ── */
@@ -194,9 +246,9 @@ export default function ProjectsPage() {
         .pp-grid {
           position: relative; z-index: 1;
           display: grid; grid-template-columns: 1fr 1fr;
-          gap: clamp(16px,2.5vw,28px); align-items: start;
+          gap: clamp(20px,3vw,32px); align-items: start;
         }
-        .pp-col { display: flex; flex-direction: column; gap: clamp(16px,2.5vw,28px); }
+        .pp-col { display: flex; flex-direction: column; gap: clamp(20px,3vw,32px); }
 
         @media (max-width: 620px) {
           .pp-hd { flex-direction: column; align-items: flex-start; }
@@ -205,49 +257,90 @@ export default function ProjectsPage() {
           .pp-col--r { margin-top: 0 !important; }
         }
 
-        /* ── card ── */
-        @keyframes pc-in {
-          from { opacity: 0; transform: perspective(1000px) translateY(24px); }
-          to   { opacity: 1; transform: perspective(1000px) translateY(0); }
-        }
+        /* ── card entrance ── */
         .pc {
           cursor: pointer; outline: none;
-          animation: pc-in .55s cubic-bezier(.16,1,.3,1) both;
-          transform: perspective(1200px) rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg));
-          transition: transform .14s ease-out;
-          will-change: transform;
+          opacity: 0;
+          transform: perspective(1200px) translateY(46px) rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg)) scale(.96);
+          filter: blur(8px);
+          transition:
+            opacity .8s cubic-bezier(.16,1,.3,1) var(--delay,0ms),
+            transform .8s cubic-bezier(.16,1,.3,1) var(--delay,0ms),
+            filter .8s cubic-bezier(.16,1,.3,1) var(--delay,0ms);
+          will-change: transform, opacity, filter;
         }
+        .pc--in {
+          opacity: 1;
+          filter: blur(0);
+          transform: perspective(1200px) translateY(0) rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg)) scale(1);
+        }
+        .pc--in:not(:hover) { transition: transform .5s ease-out; }
+
+        /* ── card frame / border glow ── */
+        .pc-frame {
+          position: relative;
+          border-radius: 20px;
+          padding: 1px;
+        }
+        .pc-edge {
+          position: absolute; inset: 0; border-radius: 20px; z-index: 0;
+          background: conic-gradient(from calc(var(--gx,50%) * 3.6deg), var(--accent), transparent 30%, transparent 70%, var(--accent));
+          opacity: 0; transition: opacity .4s ease;
+        }
+        .pc:hover .pc-edge { opacity: .55; }
+
         .pc-panel {
-          position: relative; width: 100%; aspect-ratio: 16/9;
-          border-radius: 18px; overflow: hidden;
+          position: relative; z-index: 1; width: 100%; aspect-ratio: 16/9;
+          border-radius: 19px; overflow: hidden;
           border: 1px solid rgba(255,255,255,.07);
           display: flex; align-items: center; justify-content: center;
           transition: border-color .3s ease, box-shadow .3s ease;
         }
         .pc:hover .pc-panel {
-          border-color: var(--accent);
-          box-shadow: 0 0 0 1px var(--accentd), 0 24px 48px -16px rgba(0,0,0,.6);
+          border-color: transparent;
+          box-shadow: 0 24px 56px -18px rgba(0,0,0,.65);
         }
         .pc-glow-top { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+        .pc-grid-lines {
+          position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: .5;
+          background-image:
+            linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+          background-size: 28px 28px;
+          mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 30%, transparent 75%);
+        }
         .pc-spotlight {
           position: absolute; inset: 0; z-index: 1; pointer-events: none;
-          background: radial-gradient(circle 200px at var(--gx,50%) var(--gy,50%), rgba(255,255,255,.07), transparent 70%);
+          background: radial-gradient(circle 220px at var(--gx,50%) var(--gy,50%), rgba(255,255,255,.08), transparent 70%);
           opacity: 0; transition: opacity .35s;
         }
         .pc:hover .pc-spotlight { opacity: 1; }
+
+        .pc-img-wrap {
+          position: relative; z-index: 2; width: 76%; height: 76%;
+          display: flex; align-items: center; justify-content: center;
+          clip-path: inset(100% 0 0 0);
+          transition: clip-path .9s cubic-bezier(.16,1,.3,1) calc(var(--delay,0ms) + 120ms);
+        }
+        .pc--in .pc-img-wrap { clip-path: inset(0 0 0 0); }
         .pc-img {
-          position: relative; z-index: 2;
-          width: 74%; height: auto; object-fit: contain; display: block;
+          width: 100%; height: 100%; object-fit: contain; display: block;
           border-radius: 8px;
-          box-shadow: 0 20px 50px rgba(0,0,0,.6), 0 4px 12px rgba(0,0,0,.4);
           transition: transform .5s cubic-bezier(.16,1,.3,1);
           user-select: none;
         }
         .pc:hover .pc-img { transform: translateY(-8px) scale(1.03); }
+
         .pc-index {
-          position: absolute; top: 12px; left: 14px; z-index: 3;
+          position: absolute; top: 14px; left: 16px; z-index: 3;
           font: 400 10px/1 'Space Mono', monospace; letter-spacing: .12em;
           color: rgba(255,255,255,.4);
+        }
+        .pc-cat-float {
+          position: absolute; top: 12px; right: 14px; z-index: 3;
+          font: 500 8.5px/1 'Space Mono', monospace; letter-spacing: .1em; text-transform: uppercase;
+          border: 1px solid; padding: 5px 10px; border-radius: 999px;
+          background: rgba(10,10,12,.55); backdrop-filter: blur(6px);
         }
         .pc-live {
           position: absolute; bottom: 14px; right: 14px; z-index: 3;
@@ -256,29 +349,74 @@ export default function ProjectsPage() {
           text-decoration: none; color: #0b0c0e;
           background: var(--accent);
           padding: 7px 13px 7px 14px; border-radius: 999px;
-          opacity: 0; transform: translateY(6px);
-          transition: opacity .25s, transform .25s, box-shadow .25s;
+          opacity: 0; transform: translateY(8px) scale(.94);
+          transition: opacity .25s, transform .3s cubic-bezier(.16,1,.3,1), box-shadow .25s;
         }
-        .pc:hover .pc-live { opacity: 1; transform: translateY(0); }
+        .pc:hover .pc-live { opacity: 1; transform: translateY(0) scale(1); }
         .pc-live:hover { box-shadow: 0 6px 18px -4px var(--accentd); }
-        .pc-meta {
-          display: flex; align-items: center; justify-content: space-between;
-          gap: 12px; padding: 13px 3px 0;
+
+        /* ── accent underline below image ── */
+        .pc-underline {
+          position: relative;
+          height: 2px;
+          margin: 12px 3px 0;
+          border-radius: 2px;
+          background: rgba(255,255,255,.08);
+          overflow: hidden;
+        }
+        .pc-underline::after {
+          content: '';
+          position: absolute; inset: 0;
+          background: var(--accent);
+          transform: scaleX(0);
+          transform-origin: center;
+          transition: transform .5s cubic-bezier(.16,1,.3,1);
+        }
+        .pc:hover .pc-underline::after,
+        .pc:focus-visible .pc-underline::after {
+          transform: scaleX(1);
+        }
+
+        /* ── meta ── */
+        .pc-meta { padding: 13px 3px 0; }
+        .pc-meta-row {
+          display: flex; align-items: center; justify-content: space-between; gap: 10px;
         }
         .pc-name {
-          font: 700 clamp(.95rem,1.4vw,1.1rem)/1.2 Inter, sans-serif;
-          color: #edeae3; letter-spacing: -.02em; margin: 0 0 4px;
+          font: 700 clamp(.98rem,1.4vw,1.15rem)/1.2 Inter, sans-serif;
+          color: #edeae3; letter-spacing: -.02em; margin: 0;
         }
-        .pc-sub { font: 400 12px/1 Inter, sans-serif; color: rgba(255,255,255,.38); margin: 0; }
-        .pc-cat {
-          font: 500 9.5px/1 'Space Mono', monospace; letter-spacing: .08em;
-          text-transform: uppercase; border: 1px solid;
-          padding: 5px 11px; border-radius: 999px;
-          background: rgba(255,255,255,.03); flex-shrink: 0; white-space: nowrap;
+        .pc-arrow {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+          border: 1px solid rgba(255,255,255,.12); color: rgba(255,255,255,.4);
+          transition: transform .3s cubic-bezier(.16,1,.3,1), border-color .3s, color .3s, background .3s;
         }
+        .pc:hover .pc-arrow {
+          transform: rotate(45deg);
+          border-color: var(--accent); color: var(--accent);
+          background: var(--accentd);
+        }
+        .pc-sub { font: 400 12px/1.5 Inter, sans-serif; color: rgba(255,255,255,.38); margin: 5px 0 0; }
+        .pc-tech {
+          list-style: none; display: flex; flex-wrap: wrap; gap: 6px;
+          margin: 11px 0 0; padding: 0;
+        }
+        .pc-tech li {
+          font: 400 9px/1 'Space Mono', monospace; letter-spacing: .04em;
+          color: rgba(255,255,255,.42);
+          border: 1px solid rgba(255,255,255,.09);
+          border-radius: 6px; padding: 5px 8px;
+          background: rgba(255,255,255,.02);
+        }
+
         .pp-empty {
           grid-column: 1/-1; text-align: center; padding: 60px;
           font: 400 14px/1 Inter, sans-serif; color: rgba(255,255,255,.28);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .pc, .pc-img-wrap, .pc-underline::after { transition: none !important; filter: none !important; opacity: 1 !important; transform: none !important; clip-path: none !important; }
         }
       `}</style>
 
@@ -301,11 +439,11 @@ export default function ProjectsPage() {
                     </div>
                     <div className="pp-count">
                         <b>{String(filtered.length).padStart(2, '0')}</b>
-                        {active === 'All' ? 'total projects' : `in ${active}`}
+                        {active === 'All' ? 'Total Projects' : `in ${active}`}
                     </div>
                 </div>
 
-                <div className="pp-filters" role="group" aria-label="Filter projects">
+                {/* <div className="pp-filters" role="group" aria-label="Filter projects">
                     {categories.map((cat) => (
                         <button
                             key={cat}
@@ -316,15 +454,15 @@ export default function ProjectsPage() {
                             {cat}
                         </button>
                     ))}
-                </div>
+                </div> */}
 
                 {filtered.length > 0 ? (
                     <div className="pp-grid" key={active}>
                         <div className="pp-col pp-col--l" ref={leftRef}>
-                            {left.map((p, i) => <ProjCard key={p.id} project={p} delay={i * 80} />)}
+                            {left.map((p, i) => <ProjCard key={p.id} project={p} delay={i * 90} />)}
                         </div>
                         <div className="pp-col pp-col--r" ref={rightRef}>
-                            {right.map((p, i) => <ProjCard key={p.id} project={p} delay={i * 80 + 60} />)}
+                            {right.map((p, i) => <ProjCard key={p.id} project={p} delay={i * 90 + 70} />)}
                         </div>
                     </div>
                 ) : (

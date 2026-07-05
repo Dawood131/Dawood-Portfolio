@@ -9,7 +9,7 @@ import Footer from "../components/Footer";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const PHOTO = "/files/IMG-20250815-WA0006.jpg";
+const PHOTO = "/files/My Photo.jpg";
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
@@ -127,7 +127,6 @@ export default function Contact() {
 
   const filledCount = fields.filter((f) => data[f.key].trim() !== "").length;
 
-  // ── Entrance animations: header + console (same language as AboutHero) ──
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.set([headRef.current?.querySelectorAll(".cx-anim"), consoleRef.current], {
@@ -147,7 +146,6 @@ export default function Contact() {
     return () => ctx.revert();
   }, []);
 
-  // ── Mouse parallax on the background glow (same pattern as AboutHero) ──
   useEffect(() => {
     const isCoarse = window.matchMedia("(pointer: coarse)").matches;
     if (isCoarse || !glowRef.current) return;
@@ -167,7 +165,6 @@ export default function Contact() {
     return () => rootRef.current?.removeEventListener("mousemove", onMove);
   }, []);
 
-  // ── Step change animation (question block) ──
   useEffect(() => {
     if (!questionRef.current) return;
     gsap.fromTo(
@@ -177,7 +174,6 @@ export default function Contact() {
     );
   }, [step]);
 
-  // ── Subtle pulse on summary values when they update ──
   useEffect(() => {
     ["name", "email", "message"].forEach((key) => {
       const el = summaryValRefs.current[key];
@@ -221,7 +217,6 @@ export default function Contact() {
       <style>{`
         .cx-root { position: relative; min-height: 100vh; padding: 130px 6vw 100px; overflow: hidden; }
         .cx-glow { position: absolute; top: -10%; right: 5%; width: 45vw; height: 45vh; border-radius: 50%;
-          background: radial-gradient(circle, rgba(0,212,255,0.12), transparent 70%); filter: blur(120px); z-index: 0; pointer-events:none;
           will-change: transform; }
 
         .cx-eyebrow { display:inline-flex; align-items:center; gap:8px; font-size:10px; letter-spacing:0.3em; text-transform:uppercase;
@@ -485,7 +480,6 @@ export default function Contact() {
                           if (error) setError("");
                         }}
                         required
-                        autoFocus
                       />
                     ) : (
                       <input
@@ -498,7 +492,6 @@ export default function Contact() {
                           if (error) setError("");
                         }}
                         required
-                        autoFocus
                       />
                     )}
 

@@ -22,7 +22,7 @@ const socialItems = [
   { label: 'LinkedIn', link: 'www.linkedin.com/in/muhammad-dawood-butt-413192282' },
 ]
 
-const LOGO_IMG = '/files/IMG-20250815-WA0006.jpg'
+const LOGO_IMG = '/files/My Photo.jpg'
 
 export default function Navbar() {
   const { pathname } = useLocation()

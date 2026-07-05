@@ -74,7 +74,8 @@ export default function Projects() {
   const glowRefs = useRef([])
   const tlRef = useRef(null)
   const [active, setActive] = useState(0)
-  const total = projects.length
+  const topProjects = projects.slice(0, 3)
+  const total = topProjects.length
   const navigate = useNavigate()
   const dispatch = useDispatch()
 
@@ -142,9 +143,9 @@ export default function Projects() {
             start: 'top top',
             end: `+=${window.innerHeight * n}`,
             pin: true,
-           pinType: isMobile ? 'fixed' : 'transform',
+            pinType: isMobile ? 'fixed' : 'transform',
             scrub: isMobile ? true : 1,
-            anticipatePin: isMobile ? 0.4 : 1,  
+            anticipatePin: isMobile ? 0.4 : 1,
             invalidateOnRefresh: true,
             onUpdate: (self) => {
               const idx = Math.min(n - 1, Math.round(self.progress * (n - 1)))
@@ -509,7 +510,7 @@ export default function Projects() {
         ref={sectionRef}
         style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}
       >
-        {projects.map((project, i) => (
+        {topProjects.map((project, i) => (
           <div
             key={`glow-${project.id}`}
             ref={el => (glowRefs.current[i] = el)}
@@ -534,14 +535,14 @@ export default function Projects() {
 
         <div className="proj-dots-desktop" style={{ position: 'absolute', right: '2.2vw', top: '50%', transform: 'translateY(-50%)', zIndex: 100 }}>
           <div className="proj-dots">
-            {projects.map((p, i) => (
+            {topProjects.map((p, i) => (
               <button key={p.id} className={`proj-dot ${i === active ? 'is-active' : ''}`} onClick={() => goTo(i)} aria-label={`Go to ${p.title}`} aria-current={i === active} />
             ))}
           </div>
         </div>
 
         <div className="proj-dots-mobile" style={{ position: 'absolute', left: 0, right: 0, bottom: '14px', justifyContent: 'center', gap: '8px', zIndex: 100 }}>
-          {projects.map((p, i) => (
+          {topProjects.map((p, i) => (
             <button
               key={p.id}
               onClick={() => goTo(i)}
@@ -556,7 +557,7 @@ export default function Projects() {
           ))}
         </div>
 
-        {projects.map((project, i) => (
+        {topProjects.map((project, i) => (
           <div
             key={project.id}
             ref={el => (cardsRef.current[i] = el)}

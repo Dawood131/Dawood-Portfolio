@@ -8,6 +8,14 @@ const DEFAULTS = {
   segments: 35
 };
 
+// Touch tuning: a single finger swipe should behave like normal page scroll.
+// Only a double-tap (tap, then a second tap within DOUBLE_TAP_MS and
+// DOUBLE_TAP_DIST_PX of the first) arms the dome so the following drag
+// rotates the sphere instead of scrolling the page.
+const DOUBLE_TAP_MS = 300;
+const DOUBLE_TAP_DIST_PX = 30;
+const DOUBLE_TAP_DIST_SQ = DOUBLE_TAP_DIST_PX * DOUBLE_TAP_DIST_PX;
+
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 const normalizeAngle = d => ((d % 360) + 360) % 360;
 const getDataNumber = (el, name, fallback) => {
@@ -102,6 +110,10 @@ export default function SkillsDome({
   const openingRef = useRef(false);
   const openStartedAtRef = useRef(0);
   const lastDragEndAt = useRef(0);
+
+  // Double-tap-to-drag state (touch only)
+  const lastTouchTapRef = useRef({ time: 0, x: 0, y: 0 });
+  const touchDragEnabledRef = useRef(false);
 
   const scrollLockedRef = useRef(false);
   const lockScroll = useCallback(() => {
@@ -296,10 +308,36 @@ export default function SkillsDome({
         if (focusedElRef.current) return;
         stopInertia();
         pointerTypeRef.current = event.pointerType || 'mouse';
+
         if (pointerTypeRef.current === 'touch') {
+          // Single-finger touch should behave like normal page scroll.
+          // Only arm dome-dragging when this tap is a double-tap
+          // (a second tap landing within DOUBLE_TAP_MS / DOUBLE_TAP_DIST_PX
+          // of the previous one).
+          const now = performance.now();
+          const last = lastTouchTapRef.current;
+          const dx = event.clientX - last.x;
+          const dy = event.clientY - last.y;
+          const isDoubleTap =
+            now - last.time < DOUBLE_TAP_MS && dx * dx + dy * dy < DOUBLE_TAP_DIST_SQ;
+
+          lastTouchTapRef.current = { time: now, x: event.clientX, y: event.clientY };
+
+          if (!isDoubleTap) {
+            // Let the browser handle this as a normal scroll/tap.
+            touchDragEnabledRef.current = false;
+            draggingRef.current = false;
+            startPosRef.current = null;
+            return;
+          }
+
+          // Double tap confirmed: enable rotation for this touch session.
+          touchDragEnabledRef.current = true;
+          lastTouchTapRef.current = { time: 0, x: 0, y: 0 };
           event.preventDefault();
           lockScroll();
         }
+
         draggingRef.current = true;
         movedRef.current = false;
         startRotRef.current = { ...rotationRef.current };
@@ -309,7 +347,11 @@ export default function SkillsDome({
       },
       onDrag: ({ event, last, velocity: velArr = [0, 0], direction: dirArr = [0, 0], movement }) => {
         if (focusedElRef.current || !draggingRef.current || !startPosRef.current) return;
-        if (pointerTypeRef.current === 'touch') event.preventDefault();
+
+        if (pointerTypeRef.current === 'touch') {
+          if (!touchDragEnabledRef.current) return; // not double-tapped: leave scroll alone
+          event.preventDefault();
+        }
 
         const dxTotal = event.clientX - startPosRef.current.x;
         const dyTotal = event.clientY - startPosRef.current.y;
@@ -352,7 +394,10 @@ export default function SkillsDome({
           tapTargetRef.current = null;
           if (movedRef.current) lastDragEndAt.current = performance.now();
           movedRef.current = false;
-          if (pointerTypeRef.current === 'touch') unlockScroll();
+          if (pointerTypeRef.current === 'touch') {
+            unlockScroll();
+            touchDragEnabledRef.current = false;
+          }
         }
       }
     },
@@ -574,7 +619,7 @@ export default function SkillsDome({
         <main
           ref={mainRef}
           className="absolute inset-0 grid place-items-center overflow-hidden select-none bg-transparent"
-          style={{ touchAction: 'none', WebkitUserSelect: 'none' }}
+          style={{ touchAction: 'pan-y', WebkitUserSelect: 'none' }}
         >
           <div className="skills-stage">
             <div ref={sphereRef} className="skills-sphere">

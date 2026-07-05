@@ -204,6 +204,7 @@ export default function Footer({ showCTA = true }) {
 
             <a
               href={`mailto:${EMAIL}`}
+              target="_blank"
               title="Gmail"
               className="footer-icon-link"
             >
