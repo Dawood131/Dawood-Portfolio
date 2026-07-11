@@ -251,11 +251,11 @@ export default function ProjectsPage() {
         .pp-col { display: flex; flex-direction: column; gap: clamp(20px,3vw,32px); }
 
         @media (max-width: 620px) {
-          .pp-hd { flex-direction: column; align-items: flex-start; }
-          .pp-count { text-align: left; }
-          .pp-grid { grid-template-columns: 1fr; }
-          .pp-col--r { margin-top: 0 !important; }
-        }
+  .pp-hd { flex-direction: column; align-items: flex-start; }
+  .pp-count { align-self: flex-end; text-align: right; }
+  .pp-grid { grid-template-columns: 1fr; }
+  .pp-col--r { margin-top: 0 !important; }
+}
 
         /* ── card entrance ── */
         .pc {

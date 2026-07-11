@@ -12,6 +12,7 @@ import About from './pages/About'
 import Projects from './pages/Projects'
 import Contact from './pages/Contact'
 import ProjectDetail from './pages/ProjectDetail'
+import NotFound from './pages/NotFound'
 
 import { initLenis, getLenis } from './lib/lenis'
 
@@ -54,6 +55,7 @@ function AppContent() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/project/:id" element={<ProjectDetail />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
     </>
