@@ -3,7 +3,7 @@ export const experience = [
     id: 'offneo',
     role: 'Frontend Developer (Full-Time)',
     company: 'Offneo',
-    duration: 'April 2026 — Present',
+    duration: 'March 2026 — Present',
     status: 'active',
     logo: '/files/Company Logo/Offneo icon.webp',
     description:

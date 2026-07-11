@@ -44,12 +44,12 @@ export default function Skills() {
           className="font-bold text-5xl md:text-7xl"
           textAlign="left"
         />
-        <p style={{
+        {/* <p style={{
           marginTop: '14px', fontSize: '13px', color: 'rgba(255,255,255,0.45)',
           fontFamily: 'Inter, sans-serif', maxWidth: '420px', lineHeight: 1.6,
         }}>
           Drag to rotate, tap a tile for a closer look.
-        </p>
+        </p> */}
       </div>
 
       <div

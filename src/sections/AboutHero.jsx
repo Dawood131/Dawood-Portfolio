@@ -1,55 +1,103 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState, useMemo } from 'react'
 import { gsap } from 'gsap'
+import { experience } from '../data/experience'
 import { Download, ArrowUpRight } from 'lucide-react'
 import RevealText from '../components/RevealText'
 import { Link } from 'react-router-dom'
 
 const RESUME_PATH = '/files/Dawood Frontend Developer Resume.pdf.pdf'
 const PHOTO = '/files/My Photo.jpg'
+const MONTHS = {
+  january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+  july: 6, august: 7, september: 8, october: 9, november: 10, december: 11,
+}
+
+function parseMonthYear(str) {
+  const [monthName, year] = str.trim().split(/\s+/)
+  const m = MONTHS[monthName.toLowerCase()]
+  if (m === undefined || !year) return null
+  return new Date(parseInt(year, 10), m, 1)
+}
+
+function parseDuration(durationStr, now) {
+  const [startStr, endStr] = durationStr.split(/\s*[—–-]\s*/).map((s) => s.trim())
+  const start = parseMonthYear(startStr)
+  let end
+  if (!endStr || /present/i.test(endStr)) {
+    end = now
+  } else {
+    const endStart = parseMonthYear(endStr)
+    end = endStart ? new Date(endStart.getFullYear(), endStart.getMonth() + 1, 0) : now
+  }
+  if (!start) return 0
+  return Math.max(0, end - start)
+}
+
+function useExpLabel(items) {
+  const [now, setNow] = useState(() => new Date())
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000 * 60 * 60)
+    return () => clearInterval(id)
+  }, [])
+
+  return useMemo(() => {
+    const totalMs = items.reduce((sum, item) => sum + parseDuration(item.duration, now), 0)
+    const totalDays = totalMs / (1000 * 60 * 60 * 24)
+    const years = Math.floor(totalDays / 365.25)
+    const afterYears = totalDays - years * 365.25
+    const months = Math.floor(afterYears / 30.44)
+
+    if (years === 0) return `${months} months`
+    if (months === 0) return `${years} year`
+    return `${years}yr ${months}mo`
+  }, [items, now])
+}
 
 export default function AboutHero() {
-    const sectionRef = useRef(null)
-    const imgWrapRef = useRef(null)
-    const clipRef = useRef(null)
-    const introRef = useRef(null)
+  const sectionRef = useRef(null)
+  const imgWrapRef = useRef(null)
+  const clipRef = useRef(null)
+  const introRef = useRef(null)
+  const expLabel = useExpLabel(experience)
 
-    useEffect(() => {
-        const ctx = gsap.context(() => {
-            gsap.set(clipRef.current, { clipPath: 'inset(0 0 100% 0)' })
-            gsap.set(introRef.current.querySelectorAll('.about2-anim'), { opacity: 0, y: 26 })
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.set(clipRef.current, { clipPath: 'inset(0 0 100% 0)' })
+      gsap.set(introRef.current.querySelectorAll('.about2-anim'), { opacity: 0, y: 26 })
 
-            const tl = gsap.timeline({ delay: 0.15 })
-            tl.to(clipRef.current, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.1, ease: 'power4.inOut' })
-                .to(introRef.current.querySelectorAll('.about2-anim'), {
-                    opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', stagger: 0.08,
-                }, 0.3)
-        }, sectionRef)
+      const tl = gsap.timeline({ delay: 0.15 })
+      tl.to(clipRef.current, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.1, ease: 'power4.inOut' })
+        .to(introRef.current.querySelectorAll('.about2-anim'), {
+          opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', stagger: 0.08,
+        }, 0.3)
+    }, sectionRef)
 
-        const isCoarse = window.matchMedia('(pointer: coarse)').matches
-        let xTo, yTo
-        const onMove = (e) => {
-            const r = sectionRef.current.getBoundingClientRect()
-            const px = (e.clientX - r.left) / r.width - 0.5
-            const py = (e.clientY - r.top) / r.height - 0.5
-            xTo(px * 18)
-            yTo(py * 14)
-        }
+    const isCoarse = window.matchMedia('(pointer: coarse)').matches
+    let xTo, yTo
+    const onMove = (e) => {
+      const r = sectionRef.current.getBoundingClientRect()
+      const px = (e.clientX - r.left) / r.width - 0.5
+      const py = (e.clientY - r.top) / r.height - 0.5
+      xTo(px * 18)
+      yTo(py * 14)
+    }
 
-        if (!isCoarse && imgWrapRef.current) {
-            xTo = gsap.quickTo(imgWrapRef.current, 'x', { duration: 0.6, ease: 'power3.out' })
-            yTo = gsap.quickTo(imgWrapRef.current, 'y', { duration: 0.6, ease: 'power3.out' })
-            sectionRef.current.addEventListener('mousemove', onMove)
-        }
+    if (!isCoarse && imgWrapRef.current) {
+      xTo = gsap.quickTo(imgWrapRef.current, 'x', { duration: 0.6, ease: 'power3.out' })
+      yTo = gsap.quickTo(imgWrapRef.current, 'y', { duration: 0.6, ease: 'power3.out' })
+      sectionRef.current.addEventListener('mousemove', onMove)
+    }
 
-        return () => {
-            ctx.revert()
-            if (!isCoarse) sectionRef.current?.removeEventListener('mousemove', onMove)
-        }
-    }, [])
+    return () => {
+      ctx.revert()
+      if (!isCoarse) sectionRef.current?.removeEventListener('mousemove', onMove)
+    }
+  }, [])
 
-    return (
-        <>
-            <style>{`
+  return (
+    <>
+      <style>{`
         .about2-section {
           position: relative;
           overflow: hidden;
@@ -263,74 +311,74 @@ export default function AboutHero() {
         }
       `}</style>
 
-            <section ref={sectionRef} className="about2-section">
-                {/* <div className="about2-watermark" aria-hidden="true">Dawood Butt</div> */}
+      <section ref={sectionRef} className="about2-section">
+        {/* <div className="about2-watermark" aria-hidden="true">Dawood Butt</div> */}
 
-                {/* <div className="about2-vertical-label">
+        {/* <div className="about2-vertical-label">
                     <span className="about2-vlabel-dot" />
                     Available For Work
                 </div> */}
 
-                <div className="about2-grid">
-                    {/* ── image ── */}
-                    <div className="about2-img-stage" ref={imgWrapRef} style={{ justifySelf: 'center' }}>
-                        <div className="about2-img-glow" aria-hidden="true" />
-                        <div className="about2-img-clip" ref={clipRef}>
-                            <img src={PHOTO} alt="Dawood Butt" loading="eager" />
-                        </div>
-                        <span className="about2-corner tl" />
-                        <span className="about2-corner br" />
-                        {/* <div className="about2-badge">
+        <div className="about2-grid">
+          {/* ── image ── */}
+          <div className="about2-img-stage" ref={imgWrapRef} style={{ justifySelf: 'center' }}>
+            <div className="about2-img-glow" aria-hidden="true" />
+            <div className="about2-img-clip" ref={clipRef}>
+              <img src={PHOTO} alt="Dawood Butt" loading="eager" />
+            </div>
+            <span className="about2-corner tl" />
+            <span className="about2-corner br" />
+            {/* <div className="about2-badge">
                             <span className="about2-vlabel-dot" />
                             <span className="about2-badge-text">Open to work</span>
                         </div> */}
-                    </div>
+          </div>
 
-                    {/* ── text ── */}
-                    <div ref={introRef}>
-                        <p className="about2-eyebrow about2-anim">
-                            <span style={{
-                                width: '5px', height: '5px', borderRadius: '50%', background: '#00D4FF',
-                                display: 'inline-block', boxShadow: '0 0 8px 2px rgba(0,212,255,0.6)',
-                            }} />
-                            About Me
-                        </p>
+          {/* ── text ── */}
+          <div ref={introRef}>
+            <p className="about2-eyebrow about2-anim">
+              <span style={{
+                width: '5px', height: '5px', borderRadius: '50%', background: '#00D4FF',
+                display: 'inline-block', boxShadow: '0 0 8px 2px rgba(0,212,255,0.6)',
+              }} />
+              About Me
+            </p>
 
-                        <div className="about2-anim">
-                            <RevealText
-                                text="Hey, I'm Dawood"
-                                tag="h1"
-                                splitType="chars"
-                                delay={35}
-                                duration={0.8}
-                                className="font-bold text-4xl md:text-6xl"
-                                textAlign="left"
-                            />
-                        </div>
+            <div className="about2-anim">
+              <RevealText
+                text="Hey, I'm Dawood"
+                tag="h1"
+                splitType="chars"
+                delay={35}
+                duration={0.8}
+                className="font-bold text-4xl md:text-6xl"
+                textAlign="left"
+              />
+            </div>
 
-                        <p className="about2-role about2-anim" style={{ marginTop: '16px' }}>
-                            Frontend Developer based in Lahore, Pakistan
-                        </p>
+            <p className="about2-role about2-anim" style={{ marginTop: '16px' }}>
+              Frontend Developer based in Lahore, Pakistan
+            </p>
 
-                        <p className="about2-desc about2-anim">
-                            I build clean, fast, and detail-obsessed interfaces. I care
-                            about how things move just as much as how they look — every
-                            animation, spacing decision, and interaction is intentional.
-                        </p>
+            <p className="about2-desc about2-anim">
+              I have {expLabel} of professional experience — building clean,
+              fast, and detail-obsessed interfaces where every animation and
+              interaction is intentional.
+            </p>
 
-                        <div className="about2-cta-row about2-anim">
-                            <a href={RESUME_PATH} download className="about2-resume-btn">
-                                <Download size={14} strokeWidth={2.2} />
-                                Download Resume
-                            </a>
-                            <Link to="/contact" className="about2-contact-link">
-                                <span>Let's Talk</span>
-                                <ArrowUpRight size={13} strokeWidth={2.4} />
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </>
-    )
+            <div className="about2-cta-row about2-anim">
+              <a href={RESUME_PATH} download className="about2-resume-btn">
+                <Download size={14} strokeWidth={2.2} />
+                Download Resume
+              </a>
+              <Link to="/contact" className="about2-contact-link">
+                <span>Let's Talk</span>
+                <ArrowUpRight size={13} strokeWidth={2.4} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  )
 }
