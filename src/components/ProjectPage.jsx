@@ -430,7 +430,7 @@ export default function ProjectsPage() {
                             splitType="chars"
                             delay={30}
                             duration={0.8}
-                            className="font-bold text-3xl md:text-5xl"
+                            className="font-bold text-4xl md:text-6xl"
                             textAlign="left"
                         />
                         <p className="pp-desc">

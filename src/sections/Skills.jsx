@@ -41,7 +41,7 @@ export default function Skills() {
           splitType="chars"
           delay={40}
           duration={0.8}
-          className="font-bold text-5xl md:text-7xl"
+          className="font-bold text-4xl md:text-6xl"
           textAlign="left"
         />
         {/* <p style={{

@@ -8,14 +8,6 @@ const DEFAULTS = {
   segments: 35
 };
 
-// Touch tuning: a single finger swipe should behave like normal page scroll.
-// Only a double-tap (tap, then a second tap within DOUBLE_TAP_MS and
-// DOUBLE_TAP_DIST_PX of the first) arms the dome so the following drag
-// rotates the sphere instead of scrolling the page.
-const DOUBLE_TAP_MS = 300;
-const DOUBLE_TAP_DIST_PX = 30;
-const DOUBLE_TAP_DIST_SQ = DOUBLE_TAP_DIST_PX * DOUBLE_TAP_DIST_PX;
-
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 const normalizeAngle = d => ((d % 360) + 360) % 360;
 const getDataNumber = (el, name, fallback) => {
@@ -24,9 +16,6 @@ const getDataNumber = (el, name, fallback) => {
   return Number.isFinite(n) ? n : fallback;
 };
 
-// Same tile-grid layout as DomeGallery, but each slot also carries the
-// skill's name through to the DOM (data-name) so we can label tiles and
-// caption the enlarged view.
 function buildItems(pool, seg) {
   const xCols = Array.from({ length: seg }, (_, i) => -37 + i * 2);
   const evenYs = [-4, -2, 0, 2, 4];
@@ -111,9 +100,8 @@ export default function SkillsDome({
   const openStartedAtRef = useRef(0);
   const lastDragEndAt = useRef(0);
 
-  // Double-tap-to-drag state (touch only)
-  const lastTouchTapRef = useRef({ time: 0, x: 0, y: 0 });
-  const touchDragEnabledRef = useRef(false);
+  const touchDirectionRef = useRef(null);
+  const touchBailedRef = useRef(false);
 
   const scrollLockedRef = useRef(false);
   const lockScroll = useCallback(() => {
@@ -309,52 +297,60 @@ export default function SkillsDome({
         stopInertia();
         pointerTypeRef.current = event.pointerType || 'mouse';
 
-        if (pointerTypeRef.current === 'touch') {
-          // Single-finger touch should behave like normal page scroll.
-          // Only arm dome-dragging when this tap is a double-tap
-          // (a second tap landing within DOUBLE_TAP_MS / DOUBLE_TAP_DIST_PX
-          // of the previous one).
-          const now = performance.now();
-          const last = lastTouchTapRef.current;
-          const dx = event.clientX - last.x;
-          const dy = event.clientY - last.y;
-          const isDoubleTap =
-            now - last.time < DOUBLE_TAP_MS && dx * dx + dy * dy < DOUBLE_TAP_DIST_SQ;
-
-          lastTouchTapRef.current = { time: now, x: event.clientX, y: event.clientY };
-
-          if (!isDoubleTap) {
-            // Let the browser handle this as a normal scroll/tap.
-            touchDragEnabledRef.current = false;
-            draggingRef.current = false;
-            startPosRef.current = null;
-            return;
-          }
-
-          // Double tap confirmed: enable rotation for this touch session.
-          touchDragEnabledRef.current = true;
-          lastTouchTapRef.current = { time: 0, x: 0, y: 0 };
-          event.preventDefault();
-          lockScroll();
-        }
-
         draggingRef.current = true;
         movedRef.current = false;
         startRotRef.current = { ...rotationRef.current };
         startPosRef.current = { x: event.clientX, y: event.clientY };
         const potential = event.target.closest?.('.skill-item__image');
         tapTargetRef.current = potential || null;
+
+        if (pointerTypeRef.current === 'touch') {
+          touchDirectionRef.current = null;
+          touchBailedRef.current = false;
+        }
       },
       onDrag: ({ event, last, velocity: velArr = [0, 0], direction: dirArr = [0, 0], movement }) => {
         if (focusedElRef.current || !draggingRef.current || !startPosRef.current) return;
 
-        if (pointerTypeRef.current === 'touch') {
-          if (!touchDragEnabledRef.current) return; // not double-tapped: leave scroll alone
-          event.preventDefault();
+        const isTouch = pointerTypeRef.current === 'touch';
+
+        if (isTouch && touchBailedRef.current) {
+          if (last) {
+            draggingRef.current = false;
+            startPosRef.current = null;
+            movedRef.current = false;
+            touchBailedRef.current = false;
+            touchDirectionRef.current = null;
+          }
+          return;
         }
 
         const dxTotal = event.clientX - startPosRef.current.x;
         const dyTotal = event.clientY - startPosRef.current.y;
+
+        if (isTouch && touchDirectionRef.current === null && !last) {
+          const DIR_LOCK_THRESHOLD = 8;
+          if (Math.abs(dxTotal) > DIR_LOCK_THRESHOLD || Math.abs(dyTotal) > DIR_LOCK_THRESHOLD) {
+            const isHorizontal = Math.abs(dxTotal) > Math.abs(dyTotal) * 1.2;
+            if (isHorizontal) {
+              touchDirectionRef.current = 'horizontal';
+              lockScroll();
+            } else {
+              touchDirectionRef.current = 'vertical';
+              touchBailedRef.current = true;
+              draggingRef.current = false;
+              startPosRef.current = null;
+              movedRef.current = false;
+              tapTargetRef.current = null;
+              return;
+            }
+          }
+        }
+
+        if (isTouch && touchDirectionRef.current === 'horizontal') {
+          event.preventDefault();
+        }
+
         if (!movedRef.current) {
           const dist2 = dxTotal * dxTotal + dyTotal * dyTotal;
           if (dist2 > 16) movedRef.current = true;
@@ -373,7 +369,7 @@ export default function SkillsDome({
           if (startPosRef.current) {
             const dx = event.clientX - startPosRef.current.x;
             const dy = event.clientY - startPosRef.current.y;
-            const TAP_THRESH_PX = pointerTypeRef.current === 'touch' ? 10 : 6;
+            const TAP_THRESH_PX = isTouch ? 10 : 6;
             if (dx * dx + dy * dy <= TAP_THRESH_PX * TAP_THRESH_PX) isTap = true;
           }
           let [vMagX, vMagY] = velArr;
@@ -394,9 +390,10 @@ export default function SkillsDome({
           tapTargetRef.current = null;
           if (movedRef.current) lastDragEndAt.current = performance.now();
           movedRef.current = false;
-          if (pointerTypeRef.current === 'touch') {
+          if (isTouch) {
             unlockScroll();
-            touchDragEnabledRef.current = false;
+            touchDirectionRef.current = null;
+            touchBailedRef.current = false;
           }
         }
       }

@@ -316,12 +316,12 @@ export default function DesignProcess() {
                         How I Work
                     </p>
                     <RevealText
-                        text="My Design Process"
+                        text="My Development Process"
                         tag="h2"
                         splitType="chars"
                         delay={50}
                         duration={0.8}
-                        className="font-bold text-4xl md:text-5xl"
+                        className="font-bold text-4xl md:text-6xl"
                         textAlign="left"
                     />
                     <p className="process-subtitle">

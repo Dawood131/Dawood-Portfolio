@@ -208,7 +208,7 @@ export default function Achievements() {
                             splitType="chars"
                             delay={50}
                             duration={0.8}
-                            className="font-bold text-4xl md:text-5xl"
+                            className="font-bold text-4xl md:text-6xl"
                             textAlign="left"
                         />
                         <p className="ach-subtitle">

@@ -553,8 +553,16 @@ const PD_STYLES = `
 
   @media (max-width: 960px) {
     .pd-grid { grid-template-columns: 1fr; }
-    .pd-rail { position: static; max-height: none; padding-right: 0; margin-bottom: 48px; }
+  .pd-rail {
+    position: static;
+    max-height: none;
+    padding-right: 0;
+    margin-bottom: 48px;
+    overflow-y: visible;
+    overscroll-behavior: auto;
   }
+}
+
 
   /* ── right content ── */
   .pd-content { min-width: 0; }
@@ -712,14 +720,18 @@ const PD_STYLES = `
     background: #0d0d0f;
   }
   .pd-lightbox-media { width: 100%; height: auto; display: block; }
-  .pd-lightbox-close {
-    position: absolute; top: 20px; right: 20px;
-    width: 38px; height: 38px; border-radius: 50%;
-    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); color: #fff;
-    font-size: 16px; cursor: pointer;
-    transition: background .2s ease, border-color .2s ease;
-  }
-  .pd-lightbox-close:hover { background: rgba(255,255,255,0.16); border-color: var(--accent); }
+.pd-lightbox-close {
+  position: fixed;
+  top: 20px; right: 20px; z-index: 10;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(10, 10, 12, 0.85);   /* CHANGED: solid dark, koi bhi image ho */
+  border: 1px solid rgba(255,255,255,0.25);
+  color: #fff;
+  font-size: 16px; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4); /* ADD: image se alag dikhne ke liye depth */
+  transition: background .2s ease, border-color .2s ease;
+}
+.pd-lightbox-close:hover { background: rgba(20,20,22,0.95); border-color: var(--accent); }
 
   /* ── reveal ── */
   .pd-reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }

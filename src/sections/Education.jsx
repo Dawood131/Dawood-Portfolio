@@ -129,6 +129,7 @@ export default function Education() {
         .edu-section {
           position: relative;
           padding: clamp(60px,8vh,90px) 6vw;
+          overflow-x: hidden;
         }
 
         .edu-header { margin-bottom: clamp(32px,5vh,48px); }
@@ -345,7 +346,7 @@ export default function Education() {
                         splitType="chars"
                         delay={50}
                         duration={0.8}
-                        className="font-bold text-4xl md:text-5xl"
+                        className="font-bold text-4xl md:text-6xl"
                         textAlign="left"
                     />
                     <p className="edu-subtitle">

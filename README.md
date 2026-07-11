@@ -71,6 +71,7 @@ src/
 │   ├── AboutHero.jsx
 │   ├── Achievements.jsx
 │   ├── DesignProcess.jsx
+|   ├── Education.jsx
 │   ├── Experience.jsx
 │   ├── Hero.jsx
 │   ├── HorizontalScroll.jsx
