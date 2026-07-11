@@ -19,7 +19,7 @@ const menuItems = [
 
 const socialItems = [
   { label: 'GitHub', link: 'https://github.com/Dawood131' },
-  { label: 'LinkedIn', link: 'www.linkedin.com/in/muhammad-dawood-butt-413192282' },
+  { label: 'LinkedIn', link: "https://www.linkedin.com/in/muhammad-dawood-butt-413192282/", },
 ]
 
 const LOGO_IMG = '/files/My Photo.jpg'
