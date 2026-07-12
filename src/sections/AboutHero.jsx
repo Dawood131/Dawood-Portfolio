@@ -5,7 +5,7 @@ import { Download, ArrowUpRight } from 'lucide-react'
 import RevealText from '../components/RevealText'
 import { Link } from 'react-router-dom'
 
-const RESUME_PATH = '/files/Dawood Frontend Developer Resume.pdf.pdf'
+const RESUME_PATH = '/files/Dawood_Butt_Frontend_Developer_CV.pdf'
 const PHOTO = '/files/My Photo.jpg'
 const MONTHS = {
   january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
