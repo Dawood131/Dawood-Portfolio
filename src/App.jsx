@@ -15,6 +15,7 @@ import ProjectDetail from './pages/ProjectDetail'
 import NotFound from './pages/NotFound'
 
 import { initLenis, getLenis } from './lib/lenis'
+import { trackPageView } from './lib/analytics'
 
 function AppContent() {
   const [loading, setLoading] = useState(true)
@@ -36,6 +37,10 @@ function AppContent() {
     } else {
       window.scrollTo(0, 0)
     }
+  }, [pathname])
+
+  useEffect(() => {
+    trackPageView(pathname)
   }, [pathname])
 
   return (
